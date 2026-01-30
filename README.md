@@ -17,24 +17,10 @@ Reusable GitHub Copilot prompts for development workflows with Jira integration.
 ## Installation
 
 ```bash
-npm install -D @silverassist/copilot-prompts-kit
-# or
-yarn add -D @silverassist/copilot-prompts-kit
-# or
-pnpm add -D @silverassist/copilot-prompts-kit
+npx @silverassist/copilot-prompts-kit@latest install
 ```
 
-Then run the install command:
-
-```bash
-npx copilot-prompts install
-```
-
-### Via npx (no install)
-
-```bash
-npx @silverassist/copilot-prompts-kit install
-```
+That's it! This will download and run the latest version automatically.
 
 ## Setup
 
@@ -43,22 +29,32 @@ npx @silverassist/copilot-prompts-kit install
 Run the CLI to install prompts into your project:
 
 ```bash
-npx copilot-prompts install
+npx @silverassist/copilot-prompts-kit@latest install
 ```
 
 This will create the following structure in your project:
 
 ```
 .github/
+├── AGENTS.md                     # Copilot Coding Agent instructions
+├── copilot-instructions.md       # Project-wide Copilot instructions
 ├── prompts/
 │   ├── _partials/
 │   ├── analyze-ticket.prompt.md
 │   ├── create-plan.prompt.md
 │   ├── work-ticket.prompt.md
 │   └── ...
-└── instructions/
-    ├── typescript.instructions.md
-    └── ...
+├── instructions/
+│   ├── typescript.instructions.md
+│   ├── react-components.instructions.md
+│   ├── server-actions.instructions.md
+│   ├── tests.instructions.md
+│   ├── css-styling.instructions.md
+│   └── ...
+└── skills/
+    ├── component-architecture/
+    ├── domain-driven-design/
+    └── testing-patterns/
 ```
 
 ### 2. Configure Jira (Optional)
@@ -129,13 +125,15 @@ Create `.copilot-prompts.json` in your project root:
 Install prompts into your project.
 
 ```bash
-npx copilot-prompts install [options]
+npx @silverassist/copilot-prompts-kit@latest install [options]
 
 Options:
-  --force, -f     Overwrite existing files
-  --prompts-only  Only install prompts (no instructions)
-  --partials-only Only install partials
-  --dry-run       Show what would be installed
+  --force, -f         Overwrite existing files
+  --prompts-only      Only install prompts (no instructions/skills)
+  --instructions-only Only install instructions
+  --partials-only     Only install partials
+  --skills-only       Only install skills
+  --dry-run           Show what would be installed
 ```
 
 ### list
@@ -143,7 +141,7 @@ Options:
 List available prompts.
 
 ```bash
-npx copilot-prompts list
+npx @silverassist/copilot-prompts-kit@latest list
 ```
 
 ### update
@@ -151,7 +149,7 @@ npx copilot-prompts list
 Update prompts to the latest version.
 
 ```bash
-npx copilot-prompts update
+npx @silverassist/copilot-prompts-kit@latest update
 ```
 
 ## Partials
@@ -165,6 +163,57 @@ Reusable prompt fragments that can be referenced in your prompts:
 | `jira-integration.md` | Jira/Atlassian MCP operations |
 | `documentation.md` | Documentation standards |
 | `pr-template.md` | Pull request templates |
+
+## Instructions
+
+Instructions are automatic guidelines applied to specific file types:
+
+| Instruction | Applies To | Description |
+|-------------|------------|-------------|
+| `typescript.instructions.md` | `*.ts, *.tsx` | TypeScript best practices |
+| `react-components.instructions.md` | `*.tsx` | React component patterns |
+| `server-actions.instructions.md` | `**/actions/*.ts` | Next.js Server Actions |
+| `tests.instructions.md` | `*.test.ts, *.test.tsx` | Testing patterns |
+| `css-styling.instructions.md` | `*.css, *.tsx` | Tailwind CSS & shadcn/ui standards |
+
+### Copilot Instructions File
+
+The installer also creates/updates `.github/copilot-instructions.md` with key sections:
+
+- **🔄 Copilot Agent Workflow** - Systematic approach for complex tasks
+- **Key Technologies** - Project tech stack reference
+- **DDD Principles** - Domain-driven design guidelines
+- **Barrel Export Pattern** - Clean import organization
+
+If the file already exists, sections are appended at the end (if not present).
+
+### AGENTS.md File
+
+The installer creates `.github/AGENTS.md` with mandatory instructions for the GitHub Copilot Coding Agent:
+
+- **Workflow Phases** - Analysis, Planning, Implementation, Documentation
+- **Code Conventions** - Style, naming, structure rules
+- **React Patterns** - Hooks, state management, Server Actions
+- **Testing Requirements** - Coverage, mocking, file organization
+- **Git Guidelines** - Commit messages, branch naming
+
+This file is used when Copilot Coding Agent works on issues autonomously.
+
+## Skills
+
+Skills are specialized knowledge guides that Copilot uses for domain-specific patterns:
+
+| Skill | Description |
+|-------|-------------|
+| `component-architecture` | React component patterns, folder structure, naming conventions |
+| `domain-driven-design` | DDD principles, domain organization, barrel exports |
+| `testing-patterns` | Jest + RTL patterns for Next.js 15 and Server Actions |
+
+Skills are automatically referenced by Copilot when relevant. You can also explicitly reference them:
+
+```
+@workspace Use the component-architecture skill to create a new payment form
+```
 
 ## Requirements
 

@@ -3,7 +3,7 @@
  * @module @silverassist/copilot-prompts-kit
  */
 
-export const VERSION = "1.0.0";
+export const VERSION = "1.1.0";
 
 export const PROMPTS = {
   workflow: [
@@ -23,4 +23,18 @@ export const PARTIALS = [
   "jira-integration",
   "documentation",
   "pr-template",
+];
+
+export const INSTRUCTIONS = [
+  "typescript",
+  "react-components",
+  "server-actions",
+  "tests",
+  "css-styling",
+];
+
+export const SKILLS = [
+  "component-architecture",
+  "domain-driven-design",
+  "testing-patterns",
 ];

@@ -126,7 +126,7 @@ function copyDir(src, dest, options = {}) {
  * @param {Object} options - Install options
  */
 function install(options = {}) {
-  const { force = false, promptsOnly = false, partialsOnly = false, dryRun = false } = options;
+  const { force = false, promptsOnly = false, partialsOnly = false, skillsOnly = false, instructionsOnly = false, dryRun = false } = options;
   
   log('\n📦 Copilot Prompts Kit Installer\n', 'bright');
   
@@ -138,8 +138,15 @@ function install(options = {}) {
 
   let totalCopied = 0;
 
+  // Determine what to install based on flags
+  const hasSpecificFlag = promptsOnly || partialsOnly || skillsOnly || instructionsOnly;
+  
+  const shouldInstallPrompts = !hasSpecificFlag || promptsOnly || partialsOnly;
+  const shouldInstallInstructions = !hasSpecificFlag || instructionsOnly;
+  const shouldInstallSkills = !hasSpecificFlag || skillsOnly;
+
   // Install prompts
-  if (!partialsOnly) {
+  if (shouldInstallPrompts) {
     info('Installing prompts...');
     const promptsSrc = path.join(TEMPLATES_DIR, 'prompts');
     const promptsDest = path.join(targetDir, 'prompts');
@@ -151,8 +158,8 @@ function install(options = {}) {
     }
   }
 
-  // Install instructions (optional)
-  if (!promptsOnly && !partialsOnly) {
+  // Install instructions
+  if (shouldInstallInstructions) {
     info('Installing instructions...');
     const instructionsSrc = path.join(TEMPLATES_DIR, 'instructions');
     const instructionsDest = path.join(targetDir, 'instructions');
@@ -161,6 +168,19 @@ function install(options = {}) {
     
     if (!dryRun && instructionsCopied.length > 0) {
       success(`Installed ${instructionsCopied.length} instruction files`);
+    }
+  }
+
+  // Install skills
+  if (shouldInstallSkills) {
+    info('Installing skills...');
+    const skillsSrc = path.join(TEMPLATES_DIR, 'skills');
+    const skillsDest = path.join(targetDir, 'skills');
+    const skillsCopied = copyDir(skillsSrc, skillsDest, { force, dryRun });
+    totalCopied += skillsCopied.length;
+    
+    if (!dryRun && skillsCopied.length > 0) {
+      success(`Installed ${skillsCopied.length} skill files`);
     }
   }
 
@@ -187,6 +207,68 @@ function install(options = {}) {
     };
     fs.writeFileSync(configPath, JSON.stringify(defaultConfig, null, 2));
     success('Created .copilot-prompts.json config file');
+  }
+
+  // Handle copilot-instructions.md (installed with full install or --instructions-only)
+  if (shouldInstallInstructions) {
+    const copilotInstructionsPath = path.join(targetDir, 'copilot-instructions.md');
+    const templatePath = path.join(TEMPLATES_DIR, 'copilot-instructions.md');
+    
+    if (fs.existsSync(templatePath)) {
+      const templateContent = fs.readFileSync(templatePath, 'utf-8');
+      
+      if (fs.existsSync(copilotInstructionsPath)) {
+        // File exists - append key sections if not already present
+        if (!dryRun) {
+          const existingContent = fs.readFileSync(copilotInstructionsPath, 'utf-8');
+          const marker = '## 🔄 Copilot Agent Workflow';
+          
+          if (!existingContent.includes(marker)) {
+            // Remove the first line (# Copilot Instructions) and the description from template
+            const sectionsToAppend = templateContent.split('\n').slice(4).join('\n');
+            const newContent = existingContent + '\n\n' + '<!-- Added by copilot-prompts-kit -->\n' + sectionsToAppend;
+            fs.writeFileSync(copilotInstructionsPath, newContent);
+            success('Appended key sections to existing copilot-instructions.md');
+            totalCopied++;
+          } else {
+            info('copilot-instructions.md already contains key sections');
+          }
+        } else {
+          info('Would append key sections to existing copilot-instructions.md');
+        }
+      } else {
+        // File doesn't exist - create it
+        if (!dryRun) {
+          fs.writeFileSync(copilotInstructionsPath, templateContent);
+          success('Created copilot-instructions.md with key sections');
+          totalCopied++;
+        } else {
+          info('Would create copilot-instructions.md');
+        }
+      }
+    }
+  }
+
+  // Handle AGENTS.md (installed with full install or --instructions-only)
+  if (shouldInstallInstructions) {
+    const agentsPath = path.join(targetDir, 'AGENTS.md');
+    const agentsTemplatePath = path.join(TEMPLATES_DIR, 'AGENTS.md');
+    
+    if (fs.existsSync(agentsTemplatePath)) {
+      const agentsExists = fs.existsSync(agentsPath);
+      
+      if (agentsExists && !force) {
+        info('AGENTS.md already exists (use --force to overwrite)');
+      } else {
+        if (!dryRun) {
+          fs.copyFileSync(agentsTemplatePath, agentsPath);
+          success(agentsExists ? 'Updated AGENTS.md' : 'Created AGENTS.md');
+          totalCopied++;
+        } else {
+          info(agentsExists ? 'Would update AGENTS.md' : 'Would create AGENTS.md');
+        }
+      }
+    }
   }
 
   // Summary
@@ -248,6 +330,18 @@ function list() {
       console.log(`  • ${p.replace('.md', '')}`);
     });
   }
+
+  console.log('');
+  log('Skills:', 'cyan');
+  const skillsDir = path.join(TEMPLATES_DIR, 'skills');
+  if (fs.existsSync(skillsDir)) {
+    const skills = fs.readdirSync(skillsDir, { withFileTypes: true })
+      .filter(d => d.isDirectory())
+      .map(d => d.name);
+    skills.forEach(s => {
+      console.log(`  • ${s}`);
+    });
+  }
   console.log('');
 }
 
@@ -266,10 +360,12 @@ function showHelp() {
   
   console.log('');
   log('Options:', 'cyan');
-  console.log('  --force, -f       Overwrite existing files');
-  console.log('  --prompts-only    Only install prompts (no instructions)');
-  console.log('  --partials-only   Only install partials');
-  console.log('  --dry-run         Show what would be installed');
+  console.log('  --force, -f         Overwrite existing files');
+  console.log('  --prompts-only      Only install prompts (no instructions/skills)');
+  console.log('  --instructions-only Only install instructions');
+  console.log('  --partials-only     Only install partials');
+  console.log('  --skills-only       Only install skills');
+  console.log('  --dry-run           Show what would be installed');
   
   console.log('');
   log('Examples:', 'cyan');
@@ -292,6 +388,8 @@ function parseArgs() {
     force: args.includes('--force') || args.includes('-f'),
     promptsOnly: args.includes('--prompts-only'),
     partialsOnly: args.includes('--partials-only'),
+    skillsOnly: args.includes('--skills-only'),
+    instructionsOnly: args.includes('--instructions-only'),
     dryRun: args.includes('--dry-run'),
   };
   

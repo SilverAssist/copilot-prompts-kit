@@ -5,11 +5,26 @@ applyTo: "**/actions/**/*.ts"
 
 ## File Structure
 
+Organize actions by domain (consistent with DDD principles):
+
 ```
 actions/
-├── user-action.ts
-├── contact-action.ts
-└── search-action.ts
+├── auth/
+│   ├── login.ts
+│   └── register.ts
+├── user/
+│   └── update-profile.ts
+└── contact/
+    └── submit-form.ts
+```
+
+For smaller projects, flat structure is acceptable:
+
+```
+actions/
+├── auth-actions.ts
+├── user-actions.ts
+└── contact-actions.ts
 ```
 
 ## Action Pattern
