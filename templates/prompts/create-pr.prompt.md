@@ -1,5 +1,5 @@
 ---
-mode: agent
+agent: agent
 description: Create a pull request for the current branch
 ---
 

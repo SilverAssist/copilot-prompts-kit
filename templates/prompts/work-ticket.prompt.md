@@ -1,5 +1,5 @@
 ---
-mode: agent
+agent: agent
 description: Start working on a Jira ticket with full workflow setup
 ---
 

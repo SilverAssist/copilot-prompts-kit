@@ -1,5 +1,5 @@
 ---
-mode: agent
+agent: agent
 description: Fix failing tests and lint errors
 ---
 

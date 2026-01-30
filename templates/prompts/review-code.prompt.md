@@ -1,5 +1,5 @@
 ---
-mode: agent
+agent: agent
 description: Quick code review of current changes
 ---
 

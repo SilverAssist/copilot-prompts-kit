@@ -1,5 +1,5 @@
 ---
-mode: agent
+agent: agent
 description: Finalize a pull request after approval and prepare for merge
 ---
 

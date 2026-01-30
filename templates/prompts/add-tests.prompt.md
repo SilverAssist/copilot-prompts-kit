@@ -1,5 +1,5 @@
 ---
-mode: agent
+agent: agent
 description: Add tests for a component or function
 ---
 

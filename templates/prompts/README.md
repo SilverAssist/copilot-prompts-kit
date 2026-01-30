@@ -74,15 +74,23 @@ Each prompt may require input variables:
 1. Create a new `.prompt.md` file
 2. Use the frontmatter format:
    ```markdown
-   \`\`\`prompt
    ---
-   mode: agent
+   agent: agent
    description: Brief description of the prompt
    ---
    
    Your prompt content here...
-   \`\`\`
    ```
+
+### Frontmatter Options
+
+| Field | Description |
+|-------|-------------|
+| `description` | A short description of the prompt |
+| `name` | The name shown after typing `/` in chat (defaults to filename) |
+| `agent` | The agent to use: `ask`, `edit`, `agent`, or custom agent name |
+| `model` | Language model to use (defaults to selected model) |
+| `tools` | List of tools available for this prompt |
 
 ### Using Partials
 

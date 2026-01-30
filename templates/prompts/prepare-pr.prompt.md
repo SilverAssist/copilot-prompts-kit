@@ -1,5 +1,5 @@
 ---
-mode: agent
+agent: agent
 description: Prepare code for a pull request by running all validations
 ---
 

@@ -1,5 +1,5 @@
 ---
-mode: agent
+agent: agent
 description: Analyze a Jira ticket without creating branches or making changes
 ---
 
