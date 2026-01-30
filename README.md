@@ -1,39 +1,85 @@
-# @oasis/copilot-prompts-kit
+# @silverassist/copilot-prompts-kit
 
 Reusable GitHub Copilot prompts for development workflows with Jira integration.
 
+[![npm version](https://img.shields.io/npm/v/@silverassist/copilot-prompts-kit.svg)](https://www.npmjs.com/package/@silverassist/copilot-prompts-kit)
+[![License](https://img.shields.io/badge/license-PolyForm%20Noncommercial-blue.svg)](https://github.com/SilverAssist/copilot-prompts-kit/blob/main/LICENSE)
+
 ## Features
 
-- 🚀 **Complete Workflow Prompts**: From ticket analysis to PR merge
-- 🔧 **Modular Partials**: Reusable prompt fragments
-- 📋 **Jira Integration**: Built-in Atlassian MCP support
-- 🎯 **Customizable**: Easy to extend and modify
-- ⚡ **CLI Tool**: Quick installation in any project
+- ✅ **Complete Workflow Prompts**: From ticket analysis to PR merge
+- ✅ **Modular Partials**: Reusable prompt fragments
+- ✅ **Jira Integration**: Built-in Atlassian MCP support
+- ✅ **Customizable**: Easy to extend and modify
+- ✅ **CLI Tool**: Quick installation in any project
+- ✅ **VS Code Optimized**: Works with GitHub Copilot extension
 
 ## Installation
 
-### Via npm (recommended)
+```bash
+npm install -D @silverassist/copilot-prompts-kit
+# or
+yarn add -D @silverassist/copilot-prompts-kit
+# or
+pnpm add -D @silverassist/copilot-prompts-kit
+```
+
+Then run the install command:
 
 ```bash
-npm install -D @oasis/copilot-prompts-kit
 npx copilot-prompts install
 ```
 
 ### Via npx (no install)
 
 ```bash
-npx @oasis/copilot-prompts-kit install
+npx @silverassist/copilot-prompts-kit install
 ```
 
-### Manual Installation
+## Setup
 
-Copy the contents of `templates/` to your project's `.github/` directory.
+### 1. Install Prompts
+
+Run the CLI to install prompts into your project:
+
+```bash
+npx copilot-prompts install
+```
+
+This will create the following structure in your project:
+
+```
+.github/
+├── prompts/
+│   ├── _partials/
+│   ├── analyze-ticket.prompt.md
+│   ├── create-plan.prompt.md
+│   ├── work-ticket.prompt.md
+│   └── ...
+└── instructions/
+    ├── typescript.instructions.md
+    └── ...
+```
+
+### 2. Configure Jira (Optional)
+
+Create `.copilot-prompts.json` in your project root:
+
+```json
+{
+  "jira": {
+    "projectKey": "WEB",
+    "baseUrl": "https://your-org.atlassian.net"
+  },
+  "git": {
+    "defaultBranch": "dev"
+  }
+}
+```
 
 ## Usage
 
-After installation, you'll have prompts available in `.github/prompts/`.
-
-### In VS Code
+### Running Prompts in VS Code
 
 1. Open Command Palette (`Cmd+Shift+P` / `Ctrl+Shift+P`)
 2. Search for "GitHub Copilot: Run Prompt"
@@ -42,7 +88,7 @@ After installation, you'll have prompts available in `.github/prompts/`.
 
 ### Available Prompts
 
-#### Workflow Prompts (Main Flow)
+#### Workflow Prompts
 
 | Prompt | Description | Variables |
 |--------|-------------|-----------|
@@ -76,9 +122,11 @@ After installation, you'll have prompts available in `.github/prompts/`.
 └─────────────────┘     └─────────────────┘     └─────────────────┘
 ```
 
-## CLI Commands
+## CLI Reference
 
-### Install prompts
+### install
+
+Install prompts into your project.
 
 ```bash
 npx copilot-prompts install [options]
@@ -90,45 +138,25 @@ Options:
   --dry-run       Show what would be installed
 ```
 
-### List available prompts
+### list
+
+List available prompts.
 
 ```bash
 npx copilot-prompts list
 ```
 
-### Update prompts
+### update
+
+Update prompts to the latest version.
 
 ```bash
 npx copilot-prompts update
 ```
 
-## Customization
+## Partials
 
-### Adding Custom Prompts
-
-Create new `.prompt.md` files in `.github/prompts/`:
-
-```markdown
-\`\`\`prompt
----
-mode: agent
-description: Your prompt description
----
-
-Your prompt content here...
-\`\`\`
-```
-
-### Using Partials
-
-Reference shared fragments in your prompts:
-
-```markdown
-## Prerequisites
-- Reference: `.github/prompts/_partials/validations.md`
-```
-
-### Available Partials
+Reusable prompt fragments that can be referenced in your prompts:
 
 | Partial | Description |
 |---------|-------------|
@@ -138,31 +166,6 @@ Reference shared fragments in your prompts:
 | `documentation.md` | Documentation standards |
 | `pr-template.md` | Pull request templates |
 
-## Configuration
-
-Create `.copilot-prompts.json` in your project root for customization:
-
-```json
-{
-  "jira": {
-    "projectKey": "WEB",
-    "baseUrl": "https://your-org.atlassian.net"
-  },
-  "git": {
-    "defaultBranch": "dev",
-    "branchPrefix": {
-      "feature": "feature/",
-      "bugfix": "bugfix/",
-      "hotfix": "hotfix/"
-    }
-  },
-  "pr": {
-    "targetBranch": "dev",
-    "template": "default"
-  }
-}
-```
-
 ## Requirements
 
 - VS Code with GitHub Copilot extension
@@ -170,41 +173,12 @@ Create `.copilot-prompts.json` in your project root for customization:
 - Git installed and configured
 - Node.js 18+
 
-## Project Structure
-
-```
-.github/
-├── prompts/
-│   ├── _partials/           # Shared fragments
-│   │   ├── validations.md
-│   │   ├── git-operations.md
-│   │   ├── jira-integration.md
-│   │   ├── documentation.md
-│   │   └── pr-template.md
-│   │
-│   ├── analyze-ticket.prompt.md
-│   ├── create-plan.prompt.md
-│   ├── work-ticket.prompt.md
-│   ├── prepare-pr.prompt.md
-│   ├── create-pr.prompt.md
-│   ├── finalize-pr.prompt.md
-│   ├── review-code.prompt.md
-│   ├── fix-issues.prompt.md
-│   └── add-tests.prompt.md
-│
-└── instructions/            # Optional coding instructions
-    ├── typescript.instructions.md
-    ├── react-components.instructions.md
-    └── ...
-```
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
-
 ## License
 
-MIT © Oasis Senior Advisors
+[PolyForm Noncommercial License 1.0.0](https://github.com/SilverAssist/copilot-prompts-kit/blob/main/LICENSE)
+
+## Links
+
+- [GitHub Repository](https://github.com/SilverAssist/copilot-prompts-kit)
+- [npm Package](https://www.npmjs.com/package/@silverassist/copilot-prompts-kit)
+- [GitHub Copilot Documentation](https://docs.github.com/en/copilot)

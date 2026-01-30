@@ -1,6 +1,6 @@
 /**
  * Copilot Prompts Kit
- * @module @oasis/copilot-prompts-kit
+ * @module @silverassist/copilot-prompts-kit
  */
 
 export const VERSION = "1.0.0";

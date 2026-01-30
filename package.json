@@ -1,16 +1,16 @@
 {
-  "name": "@oasis/copilot-prompts-kit",
+  "name": "@silverassist/copilot-prompts-kit",
   "version": "1.0.0",
   "description": "Reusable GitHub Copilot prompts for development workflows with Jira integration",
-  "author": "Oasis Senior Advisors",
-  "license": "MIT",
+  "author": "Santiago Ramirez",
+  "license": "PolyForm-Noncommercial-1.0.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-org/copilot-prompts-kit.git"
+    "url": "https://github.com/SilverAssist/copilot-prompts-kit.git"
   },
-  "homepage": "https://github.com/your-org/copilot-prompts-kit#readme",
+  "homepage": "https://github.com/SilverAssist/copilot-prompts-kit#readme",
   "bugs": {
-    "url": "https://github.com/your-org/copilot-prompts-kit/issues"
+    "url": "https://github.com/SilverAssist/copilot-prompts-kit/issues"
   },
   "keywords": [
     "github-copilot",
