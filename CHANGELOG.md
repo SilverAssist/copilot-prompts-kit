@@ -53,6 +53,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - CLI flag logic now uses clear `shouldInstall*` variables instead of complex conditionals
 - Component architecture skill now references css-styling instructions for `cn()` utility (generic approach)
+- **Prompt files**: Replaced deprecated `mode: agent` with `agent: agent` in frontmatter (VS Code requirement)
+- **Prompt files**: Removed invalid code fence markers from 6 prompt files
+- **Prompts README**: Updated documentation with correct frontmatter format and options
 
 ## [1.0.0] - 2026-01-29
 

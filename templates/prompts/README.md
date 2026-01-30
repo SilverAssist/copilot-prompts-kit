@@ -73,6 +73,7 @@ Each prompt may require input variables:
 
 1. Create a new `.prompt.md` file
 2. Use the frontmatter format:
+
    ```markdown
    ---
    agent: agent
@@ -95,6 +96,7 @@ Each prompt may require input variables:
 ### Using Partials
 
 Reference shared fragments in your prompts:
+
 ```markdown
 ## Prerequisites
 - Reference: `.github/prompts/_partials/validations.md`
