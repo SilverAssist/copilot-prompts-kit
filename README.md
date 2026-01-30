@@ -122,19 +122,48 @@ Create `.copilot-prompts.json` in your project root:
 
 ### install
 
-Install prompts into your project.
+Install prompts into your project. **Does not overwrite existing files by default** — safe to run multiple times.
 
 ```bash
 npx @silverassist/copilot-prompts-kit@latest install [options]
-
-Options:
-  --force, -f         Overwrite existing files
-  --prompts-only      Only install prompts (no instructions/skills)
-  --instructions-only Only install instructions
-  --partials-only     Only install partials
-  --skills-only       Only install skills
-  --dry-run           Show what would be installed
 ```
+
+| Option | Description |
+|--------|-------------|
+| `--force`, `-f` | Overwrite existing files |
+| `--prompts-only` | Only install prompts (no instructions/skills) |
+| `--instructions-only` | Only install instructions |
+| `--partials-only` | Only install partials |
+| `--skills-only` | Only install skills |
+| `--dry-run` | Show what would be installed without making changes |
+
+**Examples:**
+
+```bash
+# First installation (creates all files)
+npx @silverassist/copilot-prompts-kit@latest install
+
+# Re-run safely (skips existing files)
+npx @silverassist/copilot-prompts-kit@latest install
+
+# Force overwrite all files
+npx @silverassist/copilot-prompts-kit@latest install --force
+
+# Preview changes without installing
+npx @silverassist/copilot-prompts-kit@latest install --dry-run
+```
+
+### update
+
+Update all prompts to the latest version. **Overwrites existing files** (equivalent to `install --force`).
+
+```bash
+npx @silverassist/copilot-prompts-kit@latest update [options]
+```
+
+> ⚠️ **Warning:** This will replace any customizations you've made to the installed files.
+
+**Options:** Same as `install` (e.g., `--prompts-only`, `--instructions-only`)
 
 ### list
 
@@ -144,13 +173,15 @@ List available prompts.
 npx @silverassist/copilot-prompts-kit@latest list
 ```
 
-### update
+### Command Comparison
 
-Update prompts to the latest version.
-
-```bash
-npx @silverassist/copilot-prompts-kit@latest update
-```
+| Scenario | Command |
+|----------|---------|
+| First time installation | `install` |
+| Add only new files (keep customizations) | `install` |
+| Get latest version (discard customizations) | `update` |
+| Update specific category only | `update --prompts-only` |
+| Preview what would change | `install --dry-run` |
 
 ## Partials
 
