@@ -1,4 +1,3 @@
-```prompt
 ---
 mode: agent
 description: Quick code review of current changes
@@ -80,4 +79,3 @@ For each changed file:
 ### Overall
 - **Status**: Ready / Needs Work
 - **Recommendation**: Summary
-```

@@ -1,4 +1,3 @@
-```prompt
 ---
 mode: agent
 description: Fix failing tests and lint errors
@@ -86,4 +85,3 @@ Summary of fixes applied.
 - Always commit after fixing each category
 - Run full validation after all fixes
 - Some issues may require architectural changes
-```

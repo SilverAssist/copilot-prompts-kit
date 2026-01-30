@@ -1,4 +1,3 @@
-```prompt
 ---
 mode: agent
 description: Finalize a pull request after approval and prepare for merge
@@ -144,4 +143,3 @@ Update Jira:
 - If merge conflicts arise during squash, resolve and complete
 - Notify team if deployment is needed
 - Update related documentation if this was a major feature
-```

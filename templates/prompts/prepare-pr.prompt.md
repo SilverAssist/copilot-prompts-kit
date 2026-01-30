@@ -1,4 +1,3 @@
-```prompt
 ---
 mode: agent
 description: Prepare code for a pull request by running all validations
@@ -118,4 +117,3 @@ Based on changed files:
 - Fix any blockers
 - Address warnings
 - Use `create-pr` to create the pull request
-```

@@ -1,4 +1,3 @@
-```prompt
 ---
 mode: agent
 description: Add tests for a component or function
@@ -145,4 +144,3 @@ npm test -- --coverage --testPathPattern="{test-file}"
 | Branches | X% |
 | Functions | X% |
 | Lines | X% |
-```
