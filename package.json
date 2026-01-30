@@ -6,7 +6,7 @@
   "license": "PolyForm-Noncommercial-1.0.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/SilverAssist/copilot-prompts-kit.git"
+    "url": "git+https://github.com/SilverAssist/copilot-prompts-kit.git"
   },
   "homepage": "https://github.com/SilverAssist/copilot-prompts-kit#readme",
   "bugs": {
@@ -26,7 +26,7 @@
   "type": "module",
   "main": "src/index.js",
   "bin": {
-    "copilot-prompts": "./bin/cli.js"
+    "copilot-prompts": "bin/cli.js"
   },
   "files": [
     "bin",

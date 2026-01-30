@@ -24,3 +24,13 @@ Thumbs.db
 .prettierrc*
 tsconfig.json
 jest.config.*
+
+# Documentation for development only
+CONTRIBUTING.md
+.copilot-prompts.json
+
+# CI/CD
+.github/
+
+# Environment files
+.env*
