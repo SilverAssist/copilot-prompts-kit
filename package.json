@@ -1,0 +1,48 @@
+{
+  "name": "@oasis/copilot-prompts-kit",
+  "version": "1.0.0",
+  "description": "Reusable GitHub Copilot prompts for development workflows with Jira integration",
+  "author": "Oasis Senior Advisors",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/copilot-prompts-kit.git"
+  },
+  "homepage": "https://github.com/your-org/copilot-prompts-kit#readme",
+  "bugs": {
+    "url": "https://github.com/your-org/copilot-prompts-kit/issues"
+  },
+  "keywords": [
+    "github-copilot",
+    "copilot-prompts",
+    "developer-workflow",
+    "vscode",
+    "jira",
+    "atlassian",
+    "git",
+    "pull-request",
+    "code-review"
+  ],
+  "type": "module",
+  "main": "src/index.js",
+  "bin": {
+    "copilot-prompts": "./bin/cli.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "templates",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "install-prompts": "node bin/cli.js install",
+    "test": "node --test src/**/*.test.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

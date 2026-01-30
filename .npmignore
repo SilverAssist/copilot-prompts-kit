@@ -1,0 +1,26 @@
+# Development files
+.git/
+.github/
+.vscode/
+.idea/
+node_modules/
+
+# Test files
+*.test.js
+*.spec.js
+coverage/
+__tests__/
+
+# Build files
+.cache/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Config files not needed in package
+.eslintrc*
+.prettierrc*
+tsconfig.json
+jest.config.*
