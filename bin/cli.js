@@ -250,22 +250,23 @@ function install(options = {}) {
   }
 
   // Handle AGENTS.md (installed with full install or --instructions-only)
+  // Note: AGENTS.md goes in project root per Vercel recommendations
   if (shouldInstallInstructions) {
-    const agentsPath = path.join(targetDir, 'AGENTS.md');
+    const agentsPath = path.join(process.cwd(), 'AGENTS.md');
     const agentsTemplatePath = path.join(TEMPLATES_DIR, 'AGENTS.md');
     
     if (fs.existsSync(agentsTemplatePath)) {
       const agentsExists = fs.existsSync(agentsPath);
       
       if (agentsExists && !force) {
-        info('AGENTS.md already exists (use --force to overwrite)');
+        info('AGENTS.md already exists in project root (use --force to overwrite)');
       } else {
         if (!dryRun) {
           fs.copyFileSync(agentsTemplatePath, agentsPath);
-          success(agentsExists ? 'Updated AGENTS.md' : 'Created AGENTS.md');
+          success(agentsExists ? 'Updated AGENTS.md in project root' : 'Created AGENTS.md in project root');
           totalCopied++;
         } else {
-          info(agentsExists ? 'Would update AGENTS.md' : 'Would create AGENTS.md');
+          info(agentsExists ? 'Would update AGENTS.md in project root' : 'Would create AGENTS.md in project root');
         }
       }
     }

@@ -5,6 +5,7 @@
 
 > **CRITICAL**: This file contains mandatory instructions for the GitHub Copilot Coding Agent.
 > The agent MUST follow these rules when working on issues in this repository.
+> This file should be placed at the project root per Vercel recommendations.
 
 ---
 
@@ -136,9 +137,47 @@ import { myFunction } from '@/lib/my-module';
 
 | Type | Format |
 |------|--------|
-| **Commit** | `TYPE-XXX: Brief description` |
+| **Commit** | `JIRA-XXX: Brief description` (e.g., `WEB-123: Add user authentication`) |
 | **Types** | `feat` • `fix` • `docs` • `refactor` • `test` • `chore` |
-| **Branch** | `feature/TYPE-XXX-description` • `bugfix/TYPE-XXX-description` |
+| **Branch** | `feature/JIRA-XXX-description` • `bugfix/JIRA-XXX-description` |
+
+> ⚠️ **CRITICAL**: Always include the Jira ticket prefix in commits. Never commit without it.
+
+---
+
+## 🚦 Pre-commit Quality Gates (MANDATORY)
+
+> **CRITICAL**: Before pushing code or creating a PR to protected branches (`dev`, `staging`, `master`, `main`),
+> you MUST complete ALL quality checks. This prevents failed pipelines and broken builds.
+
+### Required Checks Before Push/PR
+
+| Check | Command | Must Pass |
+|-------|---------|-----------|
+| **TypeScript** | `npx tsc --noEmit` | ✅ Zero errors |
+| **Linting** | `npm run lint` | ✅ Zero errors |
+| **Unit Tests** | `npm test` | ✅ All passing |
+| **Build** | `npm run build` | ✅ Successful |
+
+### Quality Checklist
+
+```
+Before ANY push to dev/staging/main:
+□ All TypeScript errors resolved
+□ All ESLint warnings addressed  
+□ All unit tests passing locally
+□ Build completes without errors
+□ No console.log() left in code
+□ Commit message has Jira prefix (e.g., WEB-123: ...)
+```
+
+### Why This Matters
+
+- ❌ **Without local testing** → Failed CI/CD pipelines → Wasted time & resources
+- ✅ **With local testing** → Clean pipelines → Faster deployments
+
+📄 **Testing details:** `.github/instructions/tests.instructions.md`
+📄 **Testing patterns:** `.github/skills/testing-patterns/SKILL.md`
 
 ---
 
@@ -151,3 +190,4 @@ import { myFunction } from '@/lib/my-module';
 | Creating server actions | `server-actions.instructions.md` |
 | Writing tests | `tests.instructions.md` |
 | TypeScript questions | `typescript.instructions.md` |
+| **Before pushing/PR** | `tests.instructions.md` + run quality checks |

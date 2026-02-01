@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- **`AGENTS.md`** - Now installs to project root instead of `.github/` per Vercel recommendations
+- **`bin/cli.js`** - Updated install path for AGENTS.md to project root
+
+### Added
+
+- **`AGENTS.md`** - New "Pre-commit Quality Gates" section (MANDATORY)
+  - Required checks before push/PR: TypeScript, Linting, Unit Tests, Build
+  - Quality checklist for protected branches (`dev`, `staging`, `master`, `main`)
+  - Links to testing instructions and patterns
+
+- **`AGENTS.md`** - Enhanced Git Conventions
+  - Commit format now requires Jira prefix (e.g., `WEB-123: Add feature`)
+  - Critical warning to never commit without Jira ticket prefix
+
+---
+
 ## [1.1.1] - 2026-01-30
 
 ### Changed
