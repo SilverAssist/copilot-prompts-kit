@@ -3,7 +3,7 @@
  * @module @silverassist/copilot-prompts-kit
  */
 
-export const VERSION = "1.1.1";
+export const VERSION = "1.2.0";
 
 export const PROMPTS = {
   workflow: [
