@@ -1,6 +1,6 @@
 {
   "name": "@silverassist/copilot-prompts-kit",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "Reusable GitHub Copilot prompts for development workflows with Jira integration",
   "author": "Santiago Ramirez",
   "license": "PolyForm-Noncommercial-1.0.0",
