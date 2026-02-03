@@ -95,23 +95,51 @@ src/lib/
 ```
 src/actions/
 ├── auth/                    # Auth-related actions
+│   ├── index.ts             # Barrel export
 │   ├── login.ts
 │   ├── logout.ts
 │   └── register.ts
 ├── checkout/                # Checkout actions
+│   ├── index.ts             # Barrel export
 │   ├── create-order.ts
-│   └── process-payment.ts
-├── forms/                   # Form submission actions
-│   ├── contact.ts
-│   └── newsletter.ts
+│   ├── process-payment.ts
+│   └── add-to-cart.ts
+├── contact/                 # Contact form actions
+│   ├── index.ts
+│   └── submit-form.ts
 └── user/                    # User management actions
+    ├── index.ts
     ├── update-profile.ts
     └── change-password.ts
 ```
 
+### Data Access Layer (DAL)
+
+```
+src/data/                    # Data Access Layer - server-only
+├── index.ts                 # Barrel export
+├── user.ts                  # User data operations
+├── product.ts               # Product data operations
+├── order.ts                 # Order data operations
+└── auth.ts                  # Auth/session utilities
+```
+
+> **CRITICAL**: All files in `src/data/` must start with `import "server-only"` to prevent
+> accidental client-side imports. See `server-actions.instructions.md` for security details.
+
 ## Barrel Export Pattern
 
-Use **barrel exports** (`index.ts`) for folders with multiple internal files:
+Use **barrel exports** (`index.ts`) for folders with multiple internal files.
+
+### Export Strategy by File Type
+
+| File Type | Export Type | Reason |
+|-----------|-------------|--------|
+| Components | `export default` | Tree-shaking optimization (Next.js recommendation) |
+| Helpers/Utils | `export { name }` | Multiple functions per file |
+| Types | `export type { }` | Type-only exports |
+| Actions | `export { name }` | Named functions for clarity |
+| Hooks | `export { name }` | Named functions for clarity |
 
 ### When to Create Barrel Exports
 
@@ -120,35 +148,59 @@ Use **barrel exports** (`index.ts`) for folders with multiple internal files:
 - ✅ When you want to hide internal file structure
 - ❌ Single-file folders (unnecessary)
 
-### Example
+### Component Barrel Export
 
 ```typescript
-// src/lib/api/index.ts
-export * from "./client";
-export * from "./endpoints";
-export * from "./types";
+// src/components/auth/index.ts
+// Components use "export default" in their files,
+// barrel re-exports with names for convenient imports
+export { default as LoginForm } from "./login-form";
+export { default as RegisterForm } from "./register-form";
+export { default as PasswordReset } from "./password-reset";
 
-// Usage - Clean imports from domain
-import { 
-  apiClient,
-  fetchUser,
-  type ApiResponse,
-} from "@/lib/api";
+// Usage - Clean named imports
+import { LoginForm, RegisterForm } from "@/components/auth";
 ```
 
-### Barrel Export Rules
+### Library Barrel Export
 
 ```typescript
-// ✅ CORRECT: Re-export from index
 // src/lib/payment/index.ts
-export { createCheckout } from "./checkout";
-export { processPayment } from "./stripe";
+// Libraries use named exports throughout
+export { createCheckout, validateCart } from "./checkout";
+export { processPayment, refundPayment } from "./stripe";
 export type { PaymentIntent, CheckoutSession } from "./types";
 
-// ✅ Usage
-import { createCheckout, processPayment } from "@/lib/payment";
+// Usage
+import { 
+  createCheckout,
+  processPayment,
+  type PaymentIntent,
+} from "@/lib/payment";
+```
 
-// ❌ INCORRECT: Direct file imports when barrel exists
+### Actions Barrel Export
+
+```typescript
+// src/actions/checkout/index.ts
+export { createOrder } from "./create-order";
+export { processPayment } from "./process-payment";
+export { addToCart } from "./add-to-cart";
+
+// Usage
+import { createOrder, addToCart } from "@/actions/checkout";
+```
+
+### Import Rules
+
+```typescript
+// ✅ CORRECT: Import from domain barrel
+import { LoginForm } from "@/components/auth";
+import { createCheckout } from "@/lib/payment";
+import { createOrder } from "@/actions/checkout";
+
+// ❌ INCORRECT: Deep imports when barrel exists
+import LoginForm from "@/components/auth/login-form";
 import { createCheckout } from "@/lib/payment/checkout";
 ```
 

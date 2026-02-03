@@ -5,6 +5,41 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-02-03
+
+### Changed
+
+- **`server-actions.instructions.md`** - Major security overhaul based on Next.js 15 data security guide
+  - Added Data Access Layer (DAL) architecture with `server-only` marker
+  - Added 8 critical security rules (authentication, authorization, input validation)
+  - Added closures security section
+  - Added troubleshooting section for common errors ("Failed to find Server Action")
+  - Added security checklist before deployment
+
+- **`react-components.instructions.md`** - Updated export patterns per Next.js recommendations
+  - Components now use `export default` for better tree-shaking
+  - Added barrel exports for domain organization
+  - Added Server vs Client Components examples
+  - Added critical Hook Placement rules (hooks before conditionals)
+
+- **`typescript.instructions.md`** - Added export rules section
+  - Components: `export default`
+  - Everything else: named exports
+
+- **`component-architecture/SKILL.md`** - Enhanced with DDD and barrel exports
+  - Added Server Component and Client Component templates
+  - Updated export patterns (default for components, named for rest)
+  - Added barrel exports for domains with examples
+  - Enhanced domain organization structure with `index.ts` files
+
+- **`domain-driven-design/SKILL.md`** - Added export strategy and DAL
+  - Added export strategy table by file type
+  - Added Data Access Layer (DAL) structure
+  - Added barrel export examples for components, libraries, and actions
+  - Updated actions domain structure with barrel exports
+
+---
+
 ## [1.2.0] - 2026-02-01
 
 ### Changed

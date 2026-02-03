@@ -3,6 +3,31 @@ applyTo: "**/*.{ts,tsx}"
 ---
 # TypeScript Code Style Standards
 
+## Export Rules
+
+**Components** use `export default`, everything else uses **named exports**:
+
+```typescript
+// ✅ Components: default export
+// components/auth/login-form/index.tsx
+export default function LoginForm() { }
+
+// ✅ Everything else: named exports
+// lib/utils.ts
+export function formatDate(date: Date): string { }
+export function validateEmail(email: string): boolean { }
+
+// types/user.ts
+export interface User { }
+export type UserRole = "admin" | "user";
+
+// actions/auth/login.ts
+export async function login(formData: FormData) { }
+
+// hooks/use-form.ts
+export function useForm() { }
+```
+
 ## Avoid Nested Ternaries
 **❌ NEVER use nested ternary operators** - they reduce readability significantly.
 

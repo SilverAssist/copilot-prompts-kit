@@ -39,28 +39,74 @@ src/components/payment-form/
 
 ## Component File Template
 
-```typescript
-// src/components/component-name/index.tsx
-import { ReactNode } from "react";
+### Server Component (Default)
 
-interface ComponentNameProps {
-  /** Description of this prop */
-  children?: ReactNode;
+```typescript
+// src/components/auth/user-profile/index.tsx
+import { getUserProfile } from "@/data/user";
+
+interface UserProfileProps {
+  /** User ID to display */
+  userId: string;
   /** Additional CSS classes */
   className?: string;
 }
 
 /**
- * Brief description of what this component does
+ * Displays user profile information
+ * Server Component - fetches data directly
  */
-export function ComponentName({
-  children,
+export default async function UserProfile({
+  userId,
   className,
-}: ComponentNameProps) {
+}: UserProfileProps) {
+  const user = await getUserProfile(userId);
+
   return (
     <div className={className}>
-      {children}
+      <h2>{user.name}</h2>
+      <p>{user.email}</p>
     </div>
+  );
+}
+```
+
+### Client Component (Interactive)
+
+```typescript
+// src/components/checkout/add-to-cart-button/index.tsx
+"use client";
+
+import { useState } from "react";
+import { addToCart } from "@/actions/checkout/add-to-cart";
+
+interface AddToCartButtonProps {
+  /** Product ID to add */
+  productId: string;
+  /** Button variant */
+  variant?: "primary" | "secondary";
+}
+
+/**
+ * Interactive button to add products to cart
+ * Client Component - uses state and event handlers
+ */
+export default function AddToCartButton({
+  productId,
+  variant = "primary",
+}: AddToCartButtonProps) {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleClick = async () => {
+    setIsLoading(true);
+    await addToCart(productId);
+    setIsLoading(false);
+  };
+
+  return (
+    <button onClick={handleClick} disabled={isLoading}>
+      {isLoading ? "Adding..." : "Add to Cart"}
+    </button>
   );
 }
 ```
@@ -94,15 +140,53 @@ interface UserProfileProps { }
 
 ## Export Pattern
 
-### Named Export with function keyword
+### Components: Default Export
+
+Per Next.js recommendation, components use `export default` for better tree-shaking:
 
 ```typescript
-// ✅ CORRECT
-export function ComponentName() { }
+// ✅ CORRECT: Components use default export
+export default function UserProfile() { }
+export default async function ProductList() { }  // Server Component
 
-// ❌ INCORRECT
-export default function ComponentName() { }  // No default exports
-export const ComponentName = () => { }       // No arrow functions for components
+// ❌ INCORRECT for components
+export function UserProfile() { }             // Named export - worse tree-shaking
+export const UserProfile = () => { }          // Arrow functions lose name in stack traces
+```
+
+### Everything Else: Named Exports
+
+Helpers, types, utilities, hooks, and actions use named exports:
+
+```typescript
+// ✅ CORRECT: Named exports for non-components
+// helpers.ts
+export function formatDate(date: Date): string { }
+export function validateEmail(email: string): boolean { }
+
+// types.ts
+export interface User { }
+export type PaymentStatus = "pending" | "completed";
+
+// hooks/use-form-state.ts
+export function useFormState() { }
+
+// actions/checkout/create-order.ts
+export async function createOrder(data: FormData) { }
+```
+
+### Barrel Exports for Domains
+
+Use barrel exports (`index.ts`) to expose the domain's public API:
+
+```typescript
+// src/components/auth/index.ts
+export { default as LoginForm } from "./login-form";
+export { default as RegisterForm } from "./register-form";
+export { default as PasswordReset } from "./password-reset";
+
+// Usage
+import { LoginForm, RegisterForm } from "@/components/auth";
 ```
 
 ## Separation of Concerns
@@ -148,19 +232,67 @@ import { Button } from "../../ui/button";
 import { cn } from "../../../lib/utils";
 ```
 
-## Domain Organization
+## Domain Organization (DDD)
 
-Components are organized by business domain:
+Components are organized by business domain with barrel exports:
 
 ```
 src/components/
-├── auth/               # Authentication components
-├── dashboard/          # Dashboard components
-├── forms/              # Form components (contact, wizard)
-├── checkout/           # Checkout/payment flow components
-├── layout/             # Header, footer, navigation
-├── shared/             # Cross-domain reusable components
-└── ui/                 # Primitive UI components (shadcn/ui)
+├── auth/                      # Authentication domain
+│   ├── index.ts               # Barrel export
+│   ├── login-form/
+│   │   └── index.tsx          # export default function LoginForm
+│   ├── register-form/
+│   │   └── index.tsx
+│   └── password-reset/
+│       └── index.tsx
+├── checkout/                  # Checkout domain
+│   ├── index.ts               # Barrel export
+│   ├── cart-summary/
+│   ├── payment-form/
+│   └── add-to-cart-button/
+├── dashboard/                 # Dashboard domain
+│   ├── index.ts
+│   ├── stats-card/
+│   └── activity-feed/
+├── layout/                    # Layout components
+│   ├── index.ts
+│   ├── header/
+│   ├── footer/
+│   └── sidebar/
+├── shared/                    # Cross-domain components
+│   ├── index.ts
+│   ├── loading-spinner/
+│   └── error-boundary/
+└── ui/                        # Primitive UI (shadcn/ui)
+    ├── button.tsx             # UI primitives can be single files
+    ├── input.tsx
+    └── modal.tsx
+```
+
+### Barrel Export Example
+
+```typescript
+// src/components/auth/index.ts
+export { default as LoginForm } from "./login-form";
+export { default as RegisterForm } from "./register-form";
+export { default as PasswordReset } from "./password-reset";
+
+// src/components/checkout/index.ts
+export { default as CartSummary } from "./cart-summary";
+export { default as PaymentForm } from "./payment-form";
+export { default as AddToCartButton } from "./add-to-cart-button";
+```
+
+### Clean Imports
+
+```typescript
+// ✅ CORRECT: Import from domain barrel
+import { LoginForm, RegisterForm } from "@/components/auth";
+import { CartSummary, PaymentForm } from "@/components/checkout";
+
+// ❌ INCORRECT: Deep imports when barrel exists
+import LoginForm from "@/components/auth/login-form";
 ```
 
 ## Hook Placement Rules
