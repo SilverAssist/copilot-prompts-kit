@@ -1,10 +1,13 @@
-# GitHub Copilot Prompts
+# Prompts / Commands
 
-Reusable prompt templates for GitHub Copilot agent workflows in VS Code.
+Reusable prompt templates for AI agent workflows — compatible with **GitHub Copilot** (VS Code) and **Claude Code**.
 
 ## Overview
 
-This package provides a collection of modular, reusable prompts for common development workflows. Each prompt is designed to work with GitHub Copilot's agent mode and integrates with Jira via the Atlassian MCP.
+This package provides a collection of modular, reusable prompts for common development workflows. Each prompt integrates with Jira via the Atlassian MCP.
+
+- **GitHub Copilot**: files live in `.github/prompts/` with `.prompt.md` extension
+- **Claude Code**: files live in `.claude/commands/` with `.md` extension (auto-converted by the CLI)
 
 ## Structure
 
@@ -50,12 +53,22 @@ prompts/
 
 ## Usage
 
-### In VS Code
+### GitHub Copilot (VS Code)
 
 1. Open the Command Palette (`Cmd+Shift+P`)
 2. Search for "GitHub Copilot: Run Prompt"
 3. Select the desired prompt
 4. Fill in the required variables (e.g., `{ticket-id}`)
+
+### Claude Code
+
+Type `/` in the chat to open the command palette and select the desired command:
+
+```
+/analyze-ticket
+/work-ticket
+/create-pr
+```
 
 ### Variables
 

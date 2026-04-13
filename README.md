@@ -1,6 +1,6 @@
 # @silverassist/copilot-prompts-kit
 
-Reusable GitHub Copilot prompts for development workflows with Jira integration.
+Reusable AI agent prompts for development workflows with Jira integration — supports **GitHub Copilot** and **Claude Code**.
 
 [![npm version](https://img.shields.io/npm/v/@silverassist/copilot-prompts-kit.svg)](https://www.npmjs.com/package/@silverassist/copilot-prompts-kit)
 [![License](https://img.shields.io/badge/license-PolyForm%20Noncommercial-blue.svg)](https://github.com/SilverAssist/copilot-prompts-kit/blob/main/LICENSE)
@@ -8,23 +8,29 @@ Reusable GitHub Copilot prompts for development workflows with Jira integration.
 ## Features
 
 - ✅ **Complete Workflow Prompts**: From ticket analysis to PR merge
+- ✅ **Multi-Agent Support**: Works with GitHub Copilot and Claude Code
 - ✅ **Modular Partials**: Reusable prompt fragments
 - ✅ **Jira Integration**: Built-in Atlassian MCP support
 - ✅ **Customizable**: Easy to extend and modify
 - ✅ **CLI Tool**: Quick installation in any project
-- ✅ **VS Code Optimized**: Works with GitHub Copilot extension
 
 ## Installation
+
+**For GitHub Copilot:**
 
 ```bash
 npx @silverassist/copilot-prompts-kit@latest install
 ```
 
-That's it! This will download and run the latest version automatically.
+**For Claude Code:**
+
+```bash
+npx @silverassist/copilot-prompts-kit@latest install --claude
+```
 
 ## Setup
 
-### 1. Install Prompts
+### GitHub Copilot
 
 Run the CLI to install prompts into your project:
 
@@ -32,12 +38,12 @@ Run the CLI to install prompts into your project:
 npx @silverassist/copilot-prompts-kit@latest install
 ```
 
-This will create the following structure in your project:
+This creates the following structure:
 
 ```
+AGENTS.md                             # Copilot Coding Agent instructions (project root)
 .github/
-├── AGENTS.md                     # Copilot Coding Agent instructions
-├── copilot-instructions.md       # Project-wide Copilot instructions
+├── copilot-instructions.md           # Project-wide Copilot instructions
 ├── prompts/
 │   ├── _partials/
 │   ├── analyze-ticket.prompt.md
@@ -49,17 +55,57 @@ This will create the following structure in your project:
 │   ├── react-components.instructions.md
 │   ├── server-actions.instructions.md
 │   ├── tests.instructions.md
-│   ├── css-styling.instructions.md
-│   └── ...
+│   └── css-styling.instructions.md
 └── skills/
     ├── component-architecture/
     ├── domain-driven-design/
     └── testing-patterns/
 ```
 
-### 2. Configure Jira (Optional)
+**Running prompts in VS Code:**
 
-Create `.copilot-prompts.json` in your project root:
+1. Open Command Palette (`Cmd+Shift+P` / `Ctrl+Shift+P`)
+2. Search for "GitHub Copilot: Run Prompt"
+3. Select the desired prompt
+4. Fill in variables (e.g., `{ticket-id}`)
+
+### Claude Code
+
+Run the CLI with the `--claude` flag:
+
+```bash
+npx @silverassist/copilot-prompts-kit@latest install --claude
+```
+
+This creates the following structure:
+
+```
+CLAUDE.md                             # Project instructions for Claude Code (project root)
+.claude/
+└── commands/
+    ├── _partials/
+    ├── analyze-ticket.md
+    ├── create-plan.md
+    ├── work-ticket.md
+    └── ...
+.github/
+├── instructions/                     # Shared with Copilot
+└── skills/                           # Shared with Copilot
+```
+
+**Running commands in Claude Code:**
+
+Type `/` in the chat to see all available slash commands:
+
+```
+/analyze-ticket
+/work-ticket
+/create-pr
+```
+
+### Configure Jira (Optional)
+
+Update `.copilot-prompts.json` in your project root (created automatically):
 
 ```json
 {
@@ -73,34 +119,27 @@ Create `.copilot-prompts.json` in your project root:
 }
 ```
 
-## Usage
+## Available Prompts / Commands
 
-### Running Prompts in VS Code
+The same set of prompts is available for both tools.
 
-1. Open Command Palette (`Cmd+Shift+P` / `Ctrl+Shift+P`)
-2. Search for "GitHub Copilot: Run Prompt"
-3. Select the desired prompt
-4. Fill in variables (e.g., `{ticket-id}`)
+### Workflow
 
-### Available Prompts
-
-#### Workflow Prompts
-
-| Prompt | Description | Variables |
-|--------|-------------|-----------|
+| Prompt / Command | Description | Variables |
+|------------------|-------------|-----------|
 | `analyze-ticket` | Analyze a Jira ticket | `{ticket-id}` |
 | `create-plan` | Create implementation plan | `{feature-description}` |
 | `work-ticket` | Start working on a ticket | `{ticket-id}` |
-| `prepare-pr` | Prepare code for PR | - |
+| `prepare-pr` | Prepare code for PR | — |
 | `create-pr` | Create a pull request | `{ticket-id}` |
 | `finalize-pr` | Finalize and merge PR | `{ticket-id}` |
 
-#### Utility Prompts
+### Utility
 
-| Prompt | Description | Variables |
-|--------|-------------|-----------|
-| `review-code` | Quick code review | - |
-| `fix-issues` | Fix lint/type/test errors | - |
+| Prompt / Command | Description | Variables |
+|------------------|-------------|-----------|
+| `review-code` | Quick code review | — |
+| `fix-issues` | Fix lint/type/test errors | — |
 | `add-tests` | Add tests for components | `{target-file}` |
 
 ### Workflow Stages
@@ -130,9 +169,10 @@ npx @silverassist/copilot-prompts-kit@latest install [options]
 
 | Option | Description |
 |--------|-------------|
+| `--claude` | Install for Claude Code (`.claude/commands/` + `CLAUDE.md`) |
 | `--force`, `-f` | Overwrite existing files |
-| `--prompts-only` | Only install prompts (no instructions/skills) |
-| `--instructions-only` | Only install instructions |
+| `--prompts-only` | Only install prompts / commands |
+| `--instructions-only` | Only install instructions and instructions file |
 | `--partials-only` | Only install partials |
 | `--skills-only` | Only install skills |
 | `--dry-run` | Show what would be installed without making changes |
@@ -140,17 +180,19 @@ npx @silverassist/copilot-prompts-kit@latest install [options]
 **Examples:**
 
 ```bash
-# First installation (creates all files)
+# GitHub Copilot — first install
 npx @silverassist/copilot-prompts-kit@latest install
 
-# Re-run safely (skips existing files)
-npx @silverassist/copilot-prompts-kit@latest install
+# Claude Code — first install
+npx @silverassist/copilot-prompts-kit@latest install --claude
 
 # Force overwrite all files
 npx @silverassist/copilot-prompts-kit@latest install --force
+npx @silverassist/copilot-prompts-kit@latest install --claude --force
 
-# Preview changes without installing
+# Preview without installing
 npx @silverassist/copilot-prompts-kit@latest install --dry-run
+npx @silverassist/copilot-prompts-kit@latest install --claude --dry-run
 ```
 
 ### update
@@ -159,15 +201,14 @@ Update all prompts to the latest version. **Overwrites existing files** (equival
 
 ```bash
 npx @silverassist/copilot-prompts-kit@latest update [options]
+npx @silverassist/copilot-prompts-kit@latest update --claude
 ```
 
 > ⚠️ **Warning:** This will replace any customizations you've made to the installed files.
 
-**Options:** Same as `install` (e.g., `--prompts-only`, `--instructions-only`)
-
 ### list
 
-List available prompts.
+List all available prompts and skills.
 
 ```bash
 npx @silverassist/copilot-prompts-kit@latest list
@@ -177,7 +218,8 @@ npx @silverassist/copilot-prompts-kit@latest list
 
 | Scenario | Command |
 |----------|---------|
-| First time installation | `install` |
+| First time installation (Copilot) | `install` |
+| First time installation (Claude) | `install --claude` |
 | Add only new files (keep customizations) | `install` |
 | Get latest version (discard customizations) | `update` |
 | Update specific category only | `update --prompts-only` |
@@ -185,7 +227,7 @@ npx @silverassist/copilot-prompts-kit@latest list
 
 ## Partials
 
-Reusable prompt fragments that can be referenced in your prompts:
+Reusable prompt fragments shared between tools:
 
 | Partial | Description |
 |---------|-------------|
@@ -197,7 +239,7 @@ Reusable prompt fragments that can be referenced in your prompts:
 
 ## Instructions
 
-Instructions are automatic guidelines applied to specific file types:
+File-type specific guidelines applied automatically by Copilot (and referenceable in Claude):
 
 | Instruction | Applies To | Description |
 |-------------|------------|-------------|
@@ -207,32 +249,9 @@ Instructions are automatic guidelines applied to specific file types:
 | `tests.instructions.md` | `*.test.ts, *.test.tsx` | Testing patterns |
 | `css-styling.instructions.md` | `*.css, *.tsx` | Tailwind CSS & shadcn/ui standards |
 
-### Copilot Instructions File
-
-The installer also creates/updates `.github/copilot-instructions.md` with key sections:
-
-- **🔄 Copilot Agent Workflow** - Systematic approach for complex tasks
-- **Key Technologies** - Project tech stack reference
-- **DDD Principles** - Domain-driven design guidelines
-- **Barrel Export Pattern** - Clean import organization
-
-If the file already exists, sections are appended at the end (if not present).
-
-### AGENTS.md File
-
-The installer creates `.github/AGENTS.md` with mandatory instructions for the GitHub Copilot Coding Agent:
-
-- **Workflow Phases** - Analysis, Planning, Implementation, Documentation
-- **Code Conventions** - Style, naming, structure rules
-- **React Patterns** - Hooks, state management, Server Actions
-- **Testing Requirements** - Coverage, mocking, file organization
-- **Git Guidelines** - Commit messages, branch naming
-
-This file is used when Copilot Coding Agent works on issues autonomously.
-
 ## Skills
 
-Skills are specialized knowledge guides that Copilot uses for domain-specific patterns:
+Specialized knowledge guides for domain-specific patterns:
 
 | Skill | Description |
 |-------|-------------|
@@ -240,18 +259,38 @@ Skills are specialized knowledge guides that Copilot uses for domain-specific pa
 | `domain-driven-design` | DDD principles, domain organization, barrel exports |
 | `testing-patterns` | Jest + RTL patterns for Next.js 15 and Server Actions |
 
-Skills are automatically referenced by Copilot when relevant. You can also explicitly reference them:
+**GitHub Copilot** — reference a skill explicitly:
 
 ```
 @workspace Use the component-architecture skill to create a new payment form
 ```
 
+**Claude Code** — skills are stored in `.github/skills/` and can be referenced in any prompt or command.
+
+## Agent Instructions Files
+
+### AGENTS.md (Copilot Coding Agent)
+
+Installed at the project root. Contains mandatory instructions for the GitHub Copilot Coding Agent when working on issues autonomously:
+
+- 4-phase workflow: Analysis → Planning → Implementation → Documentation
+- Code conventions, React patterns, testing requirements, git guidelines
+
+### CLAUDE.md (Claude Code)
+
+Installed at the project root with `--claude`. Contains project-wide instructions for Claude Code:
+
+- Same 4-phase workflow adapted for Claude Code conventions
+- Slash commands reference table
+- Code conventions, React patterns, git guidelines
+
 ## Requirements
 
-- VS Code with GitHub Copilot extension
-- Atlassian MCP configured (for Jira integration)
-- Git installed and configured
 - Node.js 18+
+- Git installed and configured
+- Atlassian MCP configured (for Jira integration)
+- **For GitHub Copilot:** VS Code with GitHub Copilot extension
+- **For Claude Code:** Claude Code CLI or VS Code extension
 
 ## License
 
@@ -262,3 +301,4 @@ Skills are automatically referenced by Copilot when relevant. You can also expli
 - [GitHub Repository](https://github.com/SilverAssist/copilot-prompts-kit)
 - [npm Package](https://www.npmjs.com/package/@silverassist/copilot-prompts-kit)
 - [GitHub Copilot Documentation](https://docs.github.com/en/copilot)
+- [Claude Code Documentation](https://docs.anthropic.com/en/docs/claude-code)
