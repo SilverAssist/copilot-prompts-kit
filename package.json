@@ -1,7 +1,7 @@
 {
   "name": "@silverassist/copilot-prompts-kit",
   "version": "1.4.0",
-  "description": "Reusable GitHub Copilot prompts for development workflows with Jira integration",
+  "description": "Reusable AI agent prompts for development workflows with Jira integration — supports GitHub Copilot and Claude Code",
   "author": "Santiago Ramirez",
   "license": "PolyForm-Noncommercial-1.0.0",
   "repository": {
@@ -14,7 +14,10 @@
   },
   "keywords": [
     "github-copilot",
+    "claude-code",
+    "claude",
     "copilot-prompts",
+    "ai-agent",
     "developer-workflow",
     "vscode",
     "jira",
