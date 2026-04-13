@@ -3,7 +3,7 @@
  * @module @silverassist/copilot-prompts-kit
  */
 
-export const VERSION = "1.3.0";
+export const VERSION = "1.4.0";
 
 export const PROMPTS = {
   workflow: [
@@ -38,3 +38,21 @@ export const SKILLS = [
   "domain-driven-design",
   "testing-patterns",
 ];
+
+// Claude Code equivalents
+export const CLAUDE_COMMANDS = [
+  "analyze-ticket",
+  "create-plan",
+  "work-ticket",
+  "prepare-pr",
+  "create-pr",
+  "finalize-pr",
+  "review-code",
+  "fix-issues",
+  "add-tests",
+];
+
+export const CLAUDE_FILES = {
+  instructions: "CLAUDE.md",
+  commandsDir: ".claude/commands",
+};

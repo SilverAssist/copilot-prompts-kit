@@ -65,11 +65,41 @@ function info(message) {
 }
 
 /**
- * Get the target directory for installation
+ * Get the target directory for Copilot installation
  * @returns {string} Path to .github directory
  */
 function getTargetDir() {
   return path.join(process.cwd(), '.github');
+}
+
+/**
+ * Get the target directory for Claude Code installation
+ * @returns {string} Path to .claude directory
+ */
+function getClaudeTargetDir() {
+  return path.join(process.cwd(), '.claude');
+}
+
+/**
+ * Strip GitHub Copilot frontmatter from a prompt file
+ * Removes the ---\nagent: ...\ndescription: ...\n--- block
+ * @param {string} content - File content
+ * @returns {string} Content without Copilot frontmatter
+ */
+function stripCopilotFrontmatter(content) {
+  return content.replace(/^---\n(?:[\s\S]*?\n)?---\n\n?/, '');
+}
+
+/**
+ * Adapt path references in prompt content for Claude Code
+ * @param {string} content - File content
+ * @returns {string} Content with updated paths
+ */
+function adaptPathsForClaude(content) {
+  return content
+    .replace(/\.github\/copilot-instructions\.md/g, 'CLAUDE.md')
+    .replace(/\.github\/prompts\/_partials\//g, '.claude/commands/_partials/')
+    .replace(/\.github\/instructions\//g, '.github/instructions/');
 }
 
 /**
@@ -290,6 +320,185 @@ function install(options = {}) {
 }
 
 /**
+ * Install prompts as Claude Code slash commands
+ * Strips Copilot frontmatter and adapts path references
+ * @param {string} src - Source directory
+ * @param {string} dest - Destination directory
+ * @param {Object} options - Copy options
+ * @returns {string[]} List of written files
+ */
+function copyDirForClaude(src, dest, options = {}) {
+  const { force = false, dryRun = false } = options;
+  const written = [];
+
+  if (!fs.existsSync(src)) {
+    return written;
+  }
+
+  if (!dryRun && !fs.existsSync(dest)) {
+    fs.mkdirSync(dest, { recursive: true });
+  }
+
+  const entries = fs.readdirSync(src, { withFileTypes: true });
+
+  for (const entry of entries) {
+    const srcPath = path.join(src, entry.name);
+
+    if (entry.isDirectory()) {
+      const destSubDir = path.join(dest, entry.name);
+      written.push(...copyDirForClaude(srcPath, destSubDir, options));
+      continue;
+    }
+
+    // Convert .prompt.md → .md for Claude commands
+    const destName = entry.name.replace(/\.prompt\.md$/, '.md');
+    const destPath = path.join(dest, destName);
+    const exists = fs.existsSync(destPath);
+
+    if (exists && !force) {
+      warn(`Skipping existing file: ${path.relative(process.cwd(), destPath)}`);
+      continue;
+    }
+
+    const rawContent = fs.readFileSync(srcPath, 'utf-8');
+    const adapted = adaptPathsForClaude(stripCopilotFrontmatter(rawContent));
+
+    if (dryRun) {
+      info(`Would copy: ${path.relative(process.cwd(), destPath)}`);
+    } else {
+      fs.writeFileSync(destPath, adapted);
+      written.push(destPath);
+    }
+  }
+
+  return written;
+}
+
+/**
+ * Install Claude Code files (CLAUDE.md + .claude/commands/)
+ * @param {Object} options - Install options
+ */
+function installClaude(options = {}) {
+  const { force = false, promptsOnly = false, instructionsOnly = false, skillsOnly = false, dryRun = false } = options;
+
+  log('\n🤖 Claude Code Installer\n', 'bright');
+
+  const claudeDir = getClaudeTargetDir();
+  const githubDir = getTargetDir();
+
+  if (dryRun) {
+    info('Dry run mode - no files will be copied\n');
+  }
+
+  let totalWritten = 0;
+
+  const hasSpecificFlag = promptsOnly || instructionsOnly || skillsOnly;
+  const shouldInstallPrompts = !hasSpecificFlag || promptsOnly;
+  const shouldInstallInstructions = !hasSpecificFlag || instructionsOnly;
+  const shouldInstallSkills = !hasSpecificFlag || skillsOnly;
+
+  // Install prompts as slash commands in .claude/commands/
+  if (shouldInstallPrompts) {
+    info('Installing slash commands...');
+    const promptsSrc = path.join(TEMPLATES_DIR, 'prompts');
+    const commandsDest = path.join(claudeDir, 'commands');
+    const written = copyDirForClaude(promptsSrc, commandsDest, { force, dryRun });
+    totalWritten += written.length;
+
+    if (!dryRun && written.length > 0) {
+      success(`Installed ${written.length} command files to .claude/commands/`);
+    }
+  }
+
+  // Install instructions to .github/instructions/ (shared with Copilot)
+  if (shouldInstallInstructions) {
+    info('Installing instructions...');
+    const instructionsSrc = path.join(TEMPLATES_DIR, 'instructions');
+    const instructionsDest = path.join(githubDir, 'instructions');
+    const instructionsCopied = copyDir(instructionsSrc, instructionsDest, { force, dryRun });
+    totalWritten += instructionsCopied.length;
+
+    if (!dryRun && instructionsCopied.length > 0) {
+      success(`Installed ${instructionsCopied.length} instruction files`);
+    }
+  }
+
+  // Install skills to .github/skills/ (shared with Copilot)
+  if (shouldInstallSkills) {
+    info('Installing skills...');
+    const skillsSrc = path.join(TEMPLATES_DIR, 'skills');
+    const skillsDest = path.join(githubDir, 'skills');
+    const skillsCopied = copyDir(skillsSrc, skillsDest, { force, dryRun });
+    totalWritten += skillsCopied.length;
+
+    if (!dryRun && skillsCopied.length > 0) {
+      success(`Installed ${skillsCopied.length} skill files`);
+    }
+  }
+
+  // Install CLAUDE.md at project root
+  if (shouldInstallInstructions) {
+    const claudeMdPath = path.join(process.cwd(), 'CLAUDE.md');
+    const claudeMdTemplate = path.join(TEMPLATES_DIR, 'claude', 'CLAUDE.md');
+
+    if (fs.existsSync(claudeMdTemplate)) {
+      if (fs.existsSync(claudeMdPath) && !force) {
+        info('CLAUDE.md already exists (use --force to overwrite)');
+      } else {
+        if (!dryRun) {
+          fs.copyFileSync(claudeMdTemplate, claudeMdPath);
+          success(fs.existsSync(claudeMdPath) ? 'Updated CLAUDE.md' : 'Created CLAUDE.md');
+          totalWritten++;
+        } else {
+          info(fs.existsSync(claudeMdPath) ? 'Would update CLAUDE.md' : 'Would create CLAUDE.md');
+        }
+      }
+    }
+  }
+
+  // Create config file if it doesn't exist (shared)
+  const configPath = path.join(process.cwd(), '.copilot-prompts.json');
+  if (!fs.existsSync(configPath) && !dryRun) {
+    const defaultConfig = {
+      jira: {
+        projectKey: 'PROJECT',
+        baseUrl: 'https://your-org.atlassian.net'
+      },
+      git: {
+        defaultBranch: 'dev',
+        branchPrefix: {
+          feature: 'feature/',
+          bugfix: 'bugfix/',
+          hotfix: 'hotfix/'
+        }
+      },
+      pr: {
+        targetBranch: 'dev',
+        template: 'default'
+      }
+    };
+    fs.writeFileSync(configPath, JSON.stringify(defaultConfig, null, 2));
+    success('Created .copilot-prompts.json config file');
+  }
+
+  // Summary
+  console.log('');
+  if (dryRun) {
+    info(`Dry run complete. ${totalWritten} files would be installed.`);
+  } else if (totalWritten > 0) {
+    success(`Installation complete! ${totalWritten} files installed.`);
+    console.log('');
+    info('Next steps:');
+    console.log('  1. Update .copilot-prompts.json with your Jira project key');
+    console.log('  2. Configure Atlassian MCP in Claude Code settings');
+    console.log('  3. Run slash commands with /analyze-ticket, /work-ticket, etc.');
+  } else {
+    warn('No new files installed. Use --force to overwrite existing files.');
+  }
+  console.log('');
+}
+
+/**
  * List available prompts
  */
 function list() {
@@ -362,16 +571,19 @@ function showHelp() {
   console.log('');
   log('Options:', 'cyan');
   console.log('  --force, -f         Overwrite existing files');
+  console.log('  --claude            Install for Claude Code (.claude/commands/ + CLAUDE.md)');
   console.log('  --prompts-only      Only install prompts (no instructions/skills)');
   console.log('  --instructions-only Only install instructions');
   console.log('  --partials-only     Only install partials');
   console.log('  --skills-only       Only install skills');
   console.log('  --dry-run           Show what would be installed');
-  
+
   console.log('');
   log('Examples:', 'cyan');
-  console.log('  npx copilot-prompts install');
+  console.log('  npx copilot-prompts install              # GitHub Copilot');
+  console.log('  npx copilot-prompts install --claude     # Claude Code');
   console.log('  npx copilot-prompts install --force');
+  console.log('  npx copilot-prompts install --claude --force');
   console.log('  npx copilot-prompts install --prompts-only');
   console.log('  npx copilot-prompts list');
   console.log('');
@@ -392,6 +604,7 @@ function parseArgs() {
     skillsOnly: args.includes('--skills-only'),
     instructionsOnly: args.includes('--instructions-only'),
     dryRun: args.includes('--dry-run'),
+    claude: args.includes('--claude'),
   };
   
   return { command, options };
@@ -405,10 +618,18 @@ function main() {
 
   switch (command) {
     case 'install':
-      install(options);
+      if (options.claude) {
+        installClaude(options);
+      } else {
+        install(options);
+      }
       break;
     case 'update':
-      install({ ...options, force: true });
+      if (options.claude) {
+        installClaude({ ...options, force: true });
+      } else {
+        install({ ...options, force: true });
+      }
       break;
     case 'list':
       list();

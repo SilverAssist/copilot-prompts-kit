@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-04-13
+
+### Added
+
+#### Claude Code Support
+- **`--claude` flag** for `install` and `update` commands — installs for Claude Code instead of GitHub Copilot
+  - Prompts are installed as slash commands to `.claude/commands/` (`.prompt.md` → `.md`)
+  - Copilot-specific frontmatter (`agent:`, `description:`) is stripped automatically
+  - Path references updated: `.github/copilot-instructions.md` → `CLAUDE.md`, `.github/prompts/_partials/` → `.claude/commands/_partials/`
+  - Instructions and skills are shared with Copilot (`.github/instructions/`, `.github/skills/`)
+- **`templates/claude/CLAUDE.md`** — project instructions template for Claude Code
+  - Equivalent of `copilot-instructions.md` adapted for Claude Code conventions
+  - Slash commands reference table
+  - Same workflow, conventions, and React/TypeScript patterns
+- **`CLAUDE_COMMANDS`** and **`CLAUDE_FILES`** exports in `src/index.js`
+
+#### CLI
+- `copyDirForClaude()` — recursive copy that strips Copilot frontmatter and adapts paths
+- `installClaude()` — full Claude Code installation flow
+- Help text updated with `--claude` examples
+
 ## [1.3.0] - 2026-02-03
 
 ### Changed
