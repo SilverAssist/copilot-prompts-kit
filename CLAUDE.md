@@ -121,7 +121,8 @@ src/components/userProfile/index.tsx
 #### 2. Component Export Pattern
 
 - **Function name**: MUST use PascalCase for the exported function
-- **Export statement**: MUST use named export with `export function`
+- **Export statement**: MUST use `export default function` for components
+- **Barrel file**: Re-export with a named alias from the domain `index.ts`
 - **Single responsibility**: Each file should export ONLY the component function
 
 ```typescript
@@ -131,9 +132,12 @@ interface UserProfileProps {
   className?: string;
 }
 
-export function UserProfile({ userId, className }: UserProfileProps) {
+export default function UserProfile({ userId, className }: UserProfileProps) {
   // Component implementation
 }
+
+// ✅ CORRECT: src/components/index.ts (barrel)
+export { default as UserProfile } from "./user-profile";
 ```
 
 #### 3. Props Interface Definition
@@ -158,7 +162,7 @@ export function UserProfile({ userId, className }: UserProfileProps) {
 **✅ Correct:** All hooks before conditional returns
 
 ```typescript
-export function Component({ data }: Props) {
+export default function Component({ data }: Props) {
   const [state, setState] = useState(initialState);
   const handleClick = useCallback(() => {}, []);
 

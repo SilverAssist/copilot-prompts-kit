@@ -64,7 +64,7 @@
 |------|-------------|
 | **Folders** | `kebab-case` only (`user-profile/`, NOT `UserProfile/`) |
 | **Structure** | `component-name/index.tsx` (never standalone `.tsx` files) |
-| **Exports** | `export function ComponentName` (named export, PascalCase) |
+| **Exports** | `export default function ComponentName` (default export, PascalCase) |
 | **Props** | Interface inside file, before function, named `{Component}Props` |
 
 ```
@@ -88,7 +88,7 @@
 
 ```tsx
 // ✅ CORRECT: Hooks first, then early returns
-export function Component({ data }: Props) {
+export default function Component({ data }: Props) {
   const [state, setState] = useState(initial);
   const handleClick = useCallback(() => {}, []);
   
