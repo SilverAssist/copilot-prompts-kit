@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.1] - 2026-04-13
+
+### Fixed
+
+- **Component export convention** — Resolved contradiction between `CLAUDE.md` and `.github/instructions` files where `CLAUDE.md` required named exports (`export function`) but both instruction files required default exports (`export default function`)
+- Updated all affected template files distributed via npm:
+  - `templates/claude/CLAUDE.md` — Component Export Pattern section
+  - `templates/AGENTS.md` — Component rules table and hook placement example
+  - `templates/prompts/_partials/documentation.md` — JSDoc component example
+  - `templates/skills/component-architecture/SKILL.md` — Props and hook placement examples
+- Added barrel re-export pattern (`export { default as X }`) to component export examples
+
 ## [1.4.0] - 2026-04-13
 
 ### Added
