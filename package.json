@@ -1,7 +1,7 @@
 {
   "name": "@silverassist/copilot-prompts-kit",
-  "version": "1.4.1",
-  "description": "Reusable AI agent prompts for development workflows with Jira integration — supports GitHub Copilot and Claude Code",
+  "version": "1.5.0",
+  "description": "Reusable AI agent prompts for development workflows with Jira integration — supports GitHub Copilot, Claude Code, and Codex",
   "author": "Santiago Ramirez",
   "license": "PolyForm-Noncommercial-1.0.0",
   "repository": {
@@ -16,6 +16,7 @@
     "github-copilot",
     "claude-code",
     "claude",
+    "codex",
     "copilot-prompts",
     "ai-agent",
     "developer-workflow",
@@ -33,14 +34,14 @@
   },
   "files": [
     "bin",
-    "src",
+    "src/index.js",
     "templates",
     "README.md",
     "LICENSE"
   ],
   "scripts": {
     "install-prompts": "node bin/cli.js install",
-    "test": "node --test src/**/*.test.js"
+    "test": "node --test"
   },
   "engines": {
     "node": ">=18.0.0"

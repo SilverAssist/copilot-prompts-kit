@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * CLI tool for installing and managing GitHub Copilot prompts
+ * CLI tool for installing and managing AI agent prompts
  * @module copilot-prompts-kit/cli
  */
 
@@ -21,6 +21,25 @@ const COLORS = {
   blue: '\x1b[34m',
   red: '\x1b[31m',
   cyan: '\x1b[36m',
+};
+
+const DEFAULT_CONFIG = {
+  jira: {
+    projectKey: 'PROJECT',
+    baseUrl: 'https://your-org.atlassian.net'
+  },
+  git: {
+    defaultBranch: 'dev',
+    branchPrefix: {
+      feature: 'feature/',
+      bugfix: 'bugfix/',
+      hotfix: 'hotfix/'
+    }
+  },
+  pr: {
+    targetBranch: 'dev',
+    template: 'default'
+  }
 };
 
 /**
@@ -109,14 +128,21 @@ function adaptPathsForClaude(content) {
  * @param {Object} options - Copy options
  * @param {boolean} options.force - Overwrite existing files
  * @param {boolean} options.dryRun - Only show what would be copied
- * @returns {string[]} List of copied files
+ * @param {(name: string) => string} [options.renameFile] - Optional file rename function
+ * @param {(content: string) => string} [options.transformContent] - Optional content transform
+ * @returns {{ written: number, planned: number }} Number of written/planned files
  */
 function copyDir(src, dest, options = {}) {
-  const { force = false, dryRun = false } = options;
-  const copied = [];
+  const {
+    force = false,
+    dryRun = false,
+    renameFile = (name) => name,
+    transformContent = null,
+  } = options;
+  const totals = { written: 0, planned: 0 };
 
   if (!fs.existsSync(src)) {
-    return copied;
+    return totals;
   }
 
   if (!dryRun && !fs.existsSync(dest)) {
@@ -127,192 +153,271 @@ function copyDir(src, dest, options = {}) {
 
   for (const entry of entries) {
     const srcPath = path.join(src, entry.name);
-    const destPath = path.join(dest, entry.name);
 
     if (entry.isDirectory()) {
-      copied.push(...copyDir(srcPath, destPath, options));
+      const nested = copyDir(srcPath, path.join(dest, entry.name), options);
+      totals.written += nested.written;
+      totals.planned += nested.planned;
     } else {
+      const destName = renameFile(entry.name);
+      const destPath = path.join(dest, destName);
       const exists = fs.existsSync(destPath);
-      
+
       if (exists && !force) {
         warn(`Skipping existing file: ${path.relative(process.cwd(), destPath)}`);
         continue;
       }
 
+      totals.planned++;
+
       if (dryRun) {
         info(`Would copy: ${path.relative(process.cwd(), destPath)}`);
       } else {
-        fs.copyFileSync(srcPath, destPath);
-        copied.push(destPath);
+        if (transformContent) {
+          const rawContent = fs.readFileSync(srcPath, 'utf-8');
+          fs.writeFileSync(destPath, transformContent(rawContent));
+        } else {
+          fs.copyFileSync(srcPath, destPath);
+        }
+        totals.written++;
       }
     }
   }
 
-  return copied;
+  return totals;
 }
 
-/**
- * Install prompts to target directory
- * @param {Object} options - Install options
- */
-function install(options = {}) {
-  const { force = false, promptsOnly = false, partialsOnly = false, skillsOnly = false, instructionsOnly = false, dryRun = false } = options;
-  
-  log('\n📦 Copilot Prompts Kit Installer\n', 'bright');
-  
+function getInstallScope(options = {}) {
+  const {
+    promptsOnly = false,
+    partialsOnly = false,
+    skillsOnly = false,
+    instructionsOnly = false,
+  } = options;
+
+  const hasSpecificFlag = promptsOnly || partialsOnly || skillsOnly || instructionsOnly;
+
+  return {
+    shouldInstallPrompts: !hasSpecificFlag || promptsOnly || partialsOnly,
+    shouldInstallInstructions: !hasSpecificFlag || instructionsOnly,
+    shouldInstallSkills: !hasSpecificFlag || skillsOnly,
+  };
+}
+
+function getChangeCount(result, dryRun) {
+  return dryRun ? result.planned : result.written;
+}
+
+function ensureConfigFile({ dryRun = false } = {}) {
+  const configPath = path.join(process.cwd(), '.copilot-prompts.json');
+
+  if (fs.existsSync(configPath)) {
+    return { written: 0, planned: 0 };
+  }
+
+  if (dryRun) {
+    info('Would create .copilot-prompts.json');
+    return { written: 0, planned: 1 };
+  }
+
+  fs.writeFileSync(configPath, JSON.stringify(DEFAULT_CONFIG, null, 2));
+  success('Created .copilot-prompts.json config file');
+  return { written: 1, planned: 1 };
+}
+
+function installCopilotInstructions({ targetDir, dryRun = false } = {}) {
+  const result = { written: 0, planned: 0 };
+  const copilotInstructionsPath = path.join(targetDir, 'copilot-instructions.md');
+  const templatePath = path.join(TEMPLATES_DIR, 'copilot-instructions.md');
+
+  if (!fs.existsSync(templatePath)) {
+    return result;
+  }
+
+  const templateContent = fs.readFileSync(templatePath, 'utf-8');
+
+  if (fs.existsSync(copilotInstructionsPath)) {
+    const existingContent = fs.readFileSync(copilotInstructionsPath, 'utf-8');
+    const marker = '## 🔄 Copilot Agent Workflow';
+
+    if (existingContent.includes(marker)) {
+      info('copilot-instructions.md already contains key sections');
+      return result;
+    }
+
+    result.planned++;
+    if (dryRun) {
+      info('Would append key sections to existing copilot-instructions.md');
+      return result;
+    }
+
+    const sectionsToAppend = templateContent.split('\n').slice(4).join('\n');
+    const newContent = `${existingContent}\n\n<!-- Added by copilot-prompts-kit -->\n${sectionsToAppend}`;
+    fs.writeFileSync(copilotInstructionsPath, newContent);
+    success('Appended key sections to existing copilot-instructions.md');
+    result.written++;
+    return result;
+  }
+
+  result.planned++;
+  if (dryRun) {
+    info('Would create copilot-instructions.md');
+    return result;
+  }
+
+  fs.writeFileSync(copilotInstructionsPath, templateContent);
+  success('Created copilot-instructions.md with key sections');
+  result.written++;
+  return result;
+}
+
+function getAgentsTemplateBody(templateContent) {
+  const lines = templateContent.split('\n');
+  const dividerIndex = lines.indexOf('---');
+
+  if (dividerIndex === -1) {
+    return templateContent;
+  }
+
+  return lines.slice(dividerIndex + 1).join('\n').trimStart();
+}
+
+function installAgentsFile(options = {}) {
+  const {
+    templatePath,
+    force = false,
+    append = false,
+    dryRun = false,
+  } = options;
+
+  const result = { written: 0, planned: 0 };
+  const agentsPath = path.join(process.cwd(), 'AGENTS.md');
+
+  if (!fs.existsSync(templatePath)) {
+    return result;
+  }
+
+  const agentsExists = fs.existsSync(agentsPath);
+
+  if (!agentsExists || force) {
+    result.planned++;
+    if (dryRun) {
+      info(agentsExists ? 'Would update AGENTS.md in project root' : 'Would create AGENTS.md in project root');
+      return result;
+    }
+
+    fs.copyFileSync(templatePath, agentsPath);
+    success(agentsExists ? 'Updated AGENTS.md in project root' : 'Created AGENTS.md in project root');
+    result.written++;
+    return result;
+  }
+
+  if (!append) {
+    info('AGENTS.md already exists in project root (use --force to overwrite or --append to merge)');
+    return result;
+  }
+
+  const existingContent = fs.readFileSync(agentsPath, 'utf-8');
+  const mergeMarker = '## 🔄 Agent Workflow (Complex Tasks)';
+
+  if (existingContent.includes(mergeMarker)) {
+    info('AGENTS.md already contains workflow sections');
+    return result;
+  }
+
+  result.planned++;
+  if (dryRun) {
+    info('Would append missing sections to AGENTS.md');
+    return result;
+  }
+
+  const templateContent = fs.readFileSync(templatePath, 'utf-8');
+  const templateBody = getAgentsTemplateBody(templateContent);
+  const mergedContent = `${existingContent}\n\n<!-- Added by copilot-prompts-kit (--append) -->\n\n${templateBody}`;
+  fs.writeFileSync(agentsPath, mergedContent);
+  success('Appended missing sections to AGENTS.md');
+  result.written++;
+  return result;
+}
+
+function installGitBasedTarget(options = {}, target = 'copilot') {
+  const {
+    force = false,
+    append = false,
+    dryRun = false,
+  } = options;
+  const isCodex = target === 'codex';
   const targetDir = getTargetDir();
-  
+  const scope = getInstallScope(options);
+  let totalChanges = 0;
+
+  log(isCodex ? '\n⚡ Codex Installer\n' : '\n📦 Copilot Prompts Kit Installer\n', 'bright');
+
   if (dryRun) {
     info('Dry run mode - no files will be copied\n');
   }
 
-  let totalCopied = 0;
-
-  // Determine what to install based on flags
-  const hasSpecificFlag = promptsOnly || partialsOnly || skillsOnly || instructionsOnly;
-  
-  const shouldInstallPrompts = !hasSpecificFlag || promptsOnly || partialsOnly;
-  const shouldInstallInstructions = !hasSpecificFlag || instructionsOnly;
-  const shouldInstallSkills = !hasSpecificFlag || skillsOnly;
-
-  // Install prompts
-  if (shouldInstallPrompts) {
+  if (scope.shouldInstallPrompts) {
     info('Installing prompts...');
-    const promptsSrc = path.join(TEMPLATES_DIR, 'prompts');
-    const promptsDest = path.join(targetDir, 'prompts');
-    const promptsCopied = copyDir(promptsSrc, promptsDest, { force, dryRun });
-    totalCopied += promptsCopied.length;
-    
-    if (!dryRun && promptsCopied.length > 0) {
-      success(`Installed ${promptsCopied.length} prompt files`);
+    const result = copyDir(path.join(TEMPLATES_DIR, 'prompts'), path.join(targetDir, 'prompts'), { force, dryRun });
+    totalChanges += getChangeCount(result, dryRun);
+
+    if (!dryRun && result.written > 0) {
+      success(`Installed ${result.written} prompt files`);
     }
   }
 
-  // Install instructions
-  if (shouldInstallInstructions) {
+  if (scope.shouldInstallInstructions) {
     info('Installing instructions...');
-    const instructionsSrc = path.join(TEMPLATES_DIR, 'instructions');
-    const instructionsDest = path.join(targetDir, 'instructions');
-    const instructionsCopied = copyDir(instructionsSrc, instructionsDest, { force, dryRun });
-    totalCopied += instructionsCopied.length;
-    
-    if (!dryRun && instructionsCopied.length > 0) {
-      success(`Installed ${instructionsCopied.length} instruction files`);
+    const result = copyDir(path.join(TEMPLATES_DIR, 'instructions'), path.join(targetDir, 'instructions'), { force, dryRun });
+    totalChanges += getChangeCount(result, dryRun);
+
+    if (!dryRun && result.written > 0) {
+      success(`Installed ${result.written} instruction files`);
     }
   }
 
-  // Install skills
-  if (shouldInstallSkills) {
+  if (scope.shouldInstallSkills) {
     info('Installing skills...');
-    const skillsSrc = path.join(TEMPLATES_DIR, 'skills');
-    const skillsDest = path.join(targetDir, 'skills');
-    const skillsCopied = copyDir(skillsSrc, skillsDest, { force, dryRun });
-    totalCopied += skillsCopied.length;
-    
-    if (!dryRun && skillsCopied.length > 0) {
-      success(`Installed ${skillsCopied.length} skill files`);
+    const result = copyDir(path.join(TEMPLATES_DIR, 'skills'), path.join(targetDir, 'skills'), { force, dryRun });
+    totalChanges += getChangeCount(result, dryRun);
+
+    if (!dryRun && result.written > 0) {
+      success(`Installed ${result.written} skill files`);
     }
   }
 
-  // Create config file if it doesn't exist
-  const configPath = path.join(process.cwd(), '.copilot-prompts.json');
-  if (!fs.existsSync(configPath) && !dryRun) {
-    const defaultConfig = {
-      jira: {
-        projectKey: 'PROJECT',
-        baseUrl: 'https://your-org.atlassian.net'
-      },
-      git: {
-        defaultBranch: 'dev',
-        branchPrefix: {
-          feature: 'feature/',
-          bugfix: 'bugfix/',
-          hotfix: 'hotfix/'
-        }
-      },
-      pr: {
-        targetBranch: 'dev',
-        template: 'default'
-      }
-    };
-    fs.writeFileSync(configPath, JSON.stringify(defaultConfig, null, 2));
-    success('Created .copilot-prompts.json config file');
+  const configResult = ensureConfigFile({ dryRun });
+  totalChanges += getChangeCount(configResult, dryRun);
+
+  if (scope.shouldInstallInstructions && !isCodex) {
+    const copilotInstructionsResult = installCopilotInstructions({ targetDir, dryRun });
+    totalChanges += getChangeCount(copilotInstructionsResult, dryRun);
   }
 
-  // Handle copilot-instructions.md (installed with full install or --instructions-only)
-  if (shouldInstallInstructions) {
-    const copilotInstructionsPath = path.join(targetDir, 'copilot-instructions.md');
-    const templatePath = path.join(TEMPLATES_DIR, 'copilot-instructions.md');
-    
-    if (fs.existsSync(templatePath)) {
-      const templateContent = fs.readFileSync(templatePath, 'utf-8');
-      
-      if (fs.existsSync(copilotInstructionsPath)) {
-        // File exists - append key sections if not already present
-        if (!dryRun) {
-          const existingContent = fs.readFileSync(copilotInstructionsPath, 'utf-8');
-          const marker = '## 🔄 Copilot Agent Workflow';
-          
-          if (!existingContent.includes(marker)) {
-            // Remove the first line (# Copilot Instructions) and the description from template
-            const sectionsToAppend = templateContent.split('\n').slice(4).join('\n');
-            const newContent = existingContent + '\n\n' + '<!-- Added by copilot-prompts-kit -->\n' + sectionsToAppend;
-            fs.writeFileSync(copilotInstructionsPath, newContent);
-            success('Appended key sections to existing copilot-instructions.md');
-            totalCopied++;
-          } else {
-            info('copilot-instructions.md already contains key sections');
-          }
-        } else {
-          info('Would append key sections to existing copilot-instructions.md');
-        }
-      } else {
-        // File doesn't exist - create it
-        if (!dryRun) {
-          fs.writeFileSync(copilotInstructionsPath, templateContent);
-          success('Created copilot-instructions.md with key sections');
-          totalCopied++;
-        } else {
-          info('Would create copilot-instructions.md');
-        }
-      }
-    }
+  if (scope.shouldInstallInstructions) {
+    const agentsTemplatePath = isCodex
+      ? path.join(TEMPLATES_DIR, 'codex', 'AGENTS.md')
+      : path.join(TEMPLATES_DIR, 'AGENTS.md');
+    const agentsResult = installAgentsFile({ templatePath: agentsTemplatePath, force, append, dryRun });
+    totalChanges += getChangeCount(agentsResult, dryRun);
   }
 
-  // Handle AGENTS.md (installed with full install or --instructions-only)
-  // Note: AGENTS.md goes in project root per Vercel recommendations
-  if (shouldInstallInstructions) {
-    const agentsPath = path.join(process.cwd(), 'AGENTS.md');
-    const agentsTemplatePath = path.join(TEMPLATES_DIR, 'AGENTS.md');
-    
-    if (fs.existsSync(agentsTemplatePath)) {
-      const agentsExists = fs.existsSync(agentsPath);
-      
-      if (agentsExists && !force) {
-        info('AGENTS.md already exists in project root (use --force to overwrite)');
-      } else {
-        if (!dryRun) {
-          fs.copyFileSync(agentsTemplatePath, agentsPath);
-          success(agentsExists ? 'Updated AGENTS.md in project root' : 'Created AGENTS.md in project root');
-          totalCopied++;
-        } else {
-          info(agentsExists ? 'Would update AGENTS.md in project root' : 'Would create AGENTS.md in project root');
-        }
-      }
-    }
-  }
-
-  // Summary
   console.log('');
   if (dryRun) {
-    info(`Dry run complete. ${totalCopied} files would be installed.`);
-  } else if (totalCopied > 0) {
-    success(`Installation complete! ${totalCopied} files installed.`);
+    info(`Dry run complete. ${totalChanges} files would be installed.`);
+  } else if (totalChanges > 0) {
+    success(`Installation complete! ${totalChanges} files installed.`);
     console.log('');
     info('Next steps:');
     console.log('  1. Update .copilot-prompts.json with your Jira project key');
-    console.log('  2. Configure Atlassian MCP in VS Code');
-    console.log('  3. Run prompts via Command Palette > "GitHub Copilot: Run Prompt"');
+    if (isCodex) {
+      console.log('  2. Review AGENTS.md in the project root');
+      console.log('  3. Run Codex from this project root');
+    } else {
+      console.log('  2. Configure Atlassian MCP in VS Code');
+      console.log('  3. Run prompts via Command Palette > "GitHub Copilot: Run Prompt"');
+    }
   } else {
     warn('No new files installed. Use --force to overwrite existing files.');
   }
@@ -320,58 +425,19 @@ function install(options = {}) {
 }
 
 /**
- * Install prompts as Claude Code slash commands
- * Strips Copilot frontmatter and adapts path references
- * @param {string} src - Source directory
- * @param {string} dest - Destination directory
- * @param {Object} options - Copy options
- * @returns {string[]} List of written files
+ * Install prompts to target directory
+ * @param {Object} options - Install options
  */
-function copyDirForClaude(src, dest, options = {}) {
-  const { force = false, dryRun = false } = options;
-  const written = [];
+function install(options = {}) {
+  installGitBasedTarget(options, 'copilot');
+}
 
-  if (!fs.existsSync(src)) {
-    return written;
-  }
-
-  if (!dryRun && !fs.existsSync(dest)) {
-    fs.mkdirSync(dest, { recursive: true });
-  }
-
-  const entries = fs.readdirSync(src, { withFileTypes: true });
-
-  for (const entry of entries) {
-    const srcPath = path.join(src, entry.name);
-
-    if (entry.isDirectory()) {
-      const destSubDir = path.join(dest, entry.name);
-      written.push(...copyDirForClaude(srcPath, destSubDir, options));
-      continue;
-    }
-
-    // Convert .prompt.md → .md for Claude commands
-    const destName = entry.name.replace(/\.prompt\.md$/, '.md');
-    const destPath = path.join(dest, destName);
-    const exists = fs.existsSync(destPath);
-
-    if (exists && !force) {
-      warn(`Skipping existing file: ${path.relative(process.cwd(), destPath)}`);
-      continue;
-    }
-
-    const rawContent = fs.readFileSync(srcPath, 'utf-8');
-    const adapted = adaptPathsForClaude(stripCopilotFrontmatter(rawContent));
-
-    if (dryRun) {
-      info(`Would copy: ${path.relative(process.cwd(), destPath)}`);
-    } else {
-      fs.writeFileSync(destPath, adapted);
-      written.push(destPath);
-    }
-  }
-
-  return written;
+/**
+ * Install files for Codex
+ * @param {Object} options - Install options
+ */
+function installCodex(options = {}) {
+  installGitBasedTarget(options, 'codex');
 }
 
 /**
@@ -379,114 +445,81 @@ function copyDirForClaude(src, dest, options = {}) {
  * @param {Object} options - Install options
  */
 function installClaude(options = {}) {
-  const { force = false, promptsOnly = false, instructionsOnly = false, skillsOnly = false, dryRun = false } = options;
-
-  log('\n🤖 Claude Code Installer\n', 'bright');
-
+  const { force = false, dryRun = false } = options;
+  const scope = getInstallScope(options);
   const claudeDir = getClaudeTargetDir();
   const githubDir = getTargetDir();
+  let totalChanges = 0;
+
+  log('\n🤖 Claude Code Installer\n', 'bright');
 
   if (dryRun) {
     info('Dry run mode - no files will be copied\n');
   }
 
-  let totalWritten = 0;
-
-  const hasSpecificFlag = promptsOnly || instructionsOnly || skillsOnly;
-  const shouldInstallPrompts = !hasSpecificFlag || promptsOnly;
-  const shouldInstallInstructions = !hasSpecificFlag || instructionsOnly;
-  const shouldInstallSkills = !hasSpecificFlag || skillsOnly;
-
-  // Install prompts as slash commands in .claude/commands/
-  if (shouldInstallPrompts) {
+  if (scope.shouldInstallPrompts) {
     info('Installing slash commands...');
-    const promptsSrc = path.join(TEMPLATES_DIR, 'prompts');
-    const commandsDest = path.join(claudeDir, 'commands');
-    const written = copyDirForClaude(promptsSrc, commandsDest, { force, dryRun });
-    totalWritten += written.length;
+    const result = copyDir(path.join(TEMPLATES_DIR, 'prompts'), path.join(claudeDir, 'commands'), {
+      force,
+      dryRun,
+      renameFile: (name) => name.replace(/\.prompt\.md$/, '.md'),
+      transformContent: (content) => adaptPathsForClaude(stripCopilotFrontmatter(content)),
+    });
+    totalChanges += getChangeCount(result, dryRun);
 
-    if (!dryRun && written.length > 0) {
-      success(`Installed ${written.length} command files to .claude/commands/`);
+    if (!dryRun && result.written > 0) {
+      success(`Installed ${result.written} command files to .claude/commands/`);
     }
   }
 
-  // Install instructions to .github/instructions/ (shared with Copilot)
-  if (shouldInstallInstructions) {
+  if (scope.shouldInstallInstructions) {
     info('Installing instructions...');
-    const instructionsSrc = path.join(TEMPLATES_DIR, 'instructions');
-    const instructionsDest = path.join(githubDir, 'instructions');
-    const instructionsCopied = copyDir(instructionsSrc, instructionsDest, { force, dryRun });
-    totalWritten += instructionsCopied.length;
+    const result = copyDir(path.join(TEMPLATES_DIR, 'instructions'), path.join(githubDir, 'instructions'), { force, dryRun });
+    totalChanges += getChangeCount(result, dryRun);
 
-    if (!dryRun && instructionsCopied.length > 0) {
-      success(`Installed ${instructionsCopied.length} instruction files`);
+    if (!dryRun && result.written > 0) {
+      success(`Installed ${result.written} instruction files`);
     }
   }
 
-  // Install skills to .github/skills/ (shared with Copilot)
-  if (shouldInstallSkills) {
+  if (scope.shouldInstallSkills) {
     info('Installing skills...');
-    const skillsSrc = path.join(TEMPLATES_DIR, 'skills');
-    const skillsDest = path.join(githubDir, 'skills');
-    const skillsCopied = copyDir(skillsSrc, skillsDest, { force, dryRun });
-    totalWritten += skillsCopied.length;
+    const result = copyDir(path.join(TEMPLATES_DIR, 'skills'), path.join(githubDir, 'skills'), { force, dryRun });
+    totalChanges += getChangeCount(result, dryRun);
 
-    if (!dryRun && skillsCopied.length > 0) {
-      success(`Installed ${skillsCopied.length} skill files`);
+    if (!dryRun && result.written > 0) {
+      success(`Installed ${result.written} skill files`);
     }
   }
 
-  // Install CLAUDE.md at project root
-  if (shouldInstallInstructions) {
+  if (scope.shouldInstallInstructions) {
     const claudeMdPath = path.join(process.cwd(), 'CLAUDE.md');
     const claudeMdTemplate = path.join(TEMPLATES_DIR, 'claude', 'CLAUDE.md');
 
     if (fs.existsSync(claudeMdTemplate)) {
-      if (fs.existsSync(claudeMdPath) && !force) {
+      const exists = fs.existsSync(claudeMdPath);
+      if (exists && !force) {
         info('CLAUDE.md already exists (use --force to overwrite)');
       } else {
-        if (!dryRun) {
-          fs.copyFileSync(claudeMdTemplate, claudeMdPath);
-          success(fs.existsSync(claudeMdPath) ? 'Updated CLAUDE.md' : 'Created CLAUDE.md');
-          totalWritten++;
+        totalChanges += 1;
+        if (dryRun) {
+          info(exists ? 'Would update CLAUDE.md' : 'Would create CLAUDE.md');
         } else {
-          info(fs.existsSync(claudeMdPath) ? 'Would update CLAUDE.md' : 'Would create CLAUDE.md');
+          fs.copyFileSync(claudeMdTemplate, claudeMdPath);
+          success(exists ? 'Updated CLAUDE.md' : 'Created CLAUDE.md');
         }
       }
     }
   }
 
-  // Create config file if it doesn't exist (shared)
-  const configPath = path.join(process.cwd(), '.copilot-prompts.json');
-  if (!fs.existsSync(configPath) && !dryRun) {
-    const defaultConfig = {
-      jira: {
-        projectKey: 'PROJECT',
-        baseUrl: 'https://your-org.atlassian.net'
-      },
-      git: {
-        defaultBranch: 'dev',
-        branchPrefix: {
-          feature: 'feature/',
-          bugfix: 'bugfix/',
-          hotfix: 'hotfix/'
-        }
-      },
-      pr: {
-        targetBranch: 'dev',
-        template: 'default'
-      }
-    };
-    fs.writeFileSync(configPath, JSON.stringify(defaultConfig, null, 2));
-    success('Created .copilot-prompts.json config file');
-  }
+  const configResult = ensureConfigFile({ dryRun });
+  totalChanges += getChangeCount(configResult, dryRun);
 
-  // Summary
   console.log('');
   if (dryRun) {
-    info(`Dry run complete. ${totalWritten} files would be installed.`);
-  } else if (totalWritten > 0) {
-    success(`Installation complete! ${totalWritten} files installed.`);
+    info(`Dry run complete. ${totalChanges} files would be installed.`);
+  } else if (totalChanges > 0) {
+    success(`Installation complete! ${totalChanges} files installed.`);
     console.log('');
     info('Next steps:');
     console.log('  1. Update .copilot-prompts.json with your Jira project key');
@@ -563,7 +596,7 @@ function showHelp() {
   console.log('Usage: copilot-prompts <command> [options]\n');
   
   log('Commands:', 'cyan');
-  console.log('  install     Install prompts to .github/prompts/');
+  console.log('  install     Install prompts (default target: copilot)');
   console.log('  list        List available prompts');
   console.log('  update      Update existing prompts (alias for install --force)');
   console.log('  help        Show this help message');
@@ -571,7 +604,10 @@ function showHelp() {
   console.log('');
   log('Options:', 'cyan');
   console.log('  --force, -f         Overwrite existing files');
+  console.log('  --target <name>     Target installer: copilot | claude | codex');
   console.log('  --claude            Install for Claude Code (.claude/commands/ + CLAUDE.md)');
+  console.log('  --codex             Install for Codex (AGENTS.md + shared .github files)');
+  console.log('  --append            Append missing AGENTS.md sections instead of overwriting');
   console.log('  --prompts-only      Only install prompts (no instructions/skills)');
   console.log('  --instructions-only Only install instructions');
   console.log('  --partials-only     Only install partials');
@@ -581,9 +617,14 @@ function showHelp() {
   console.log('');
   log('Examples:', 'cyan');
   console.log('  npx copilot-prompts install              # GitHub Copilot');
+  console.log('  npx copilot-prompts install --target codex');
+  console.log('  npx copilot-prompts install --target=claude');
   console.log('  npx copilot-prompts install --claude     # Claude Code');
+  console.log('  npx copilot-prompts install --codex      # Codex');
   console.log('  npx copilot-prompts install --force');
+  console.log('  npx copilot-prompts install --append --instructions-only');
   console.log('  npx copilot-prompts install --claude --force');
+  console.log('  npx copilot-prompts install --codex --force');
   console.log('  npx copilot-prompts install --prompts-only');
   console.log('  npx copilot-prompts list');
   console.log('');
@@ -596,18 +637,82 @@ function showHelp() {
 function parseArgs() {
   const args = process.argv.slice(2);
   const command = args[0] || 'help';
-  
+  const flags = args.slice(1);
+
+  let target = null;
+  for (let i = 0; i < flags.length; i++) {
+    const arg = flags[i];
+    if (arg === '--target') {
+      const value = flags[i + 1];
+      if (value && !value.startsWith('-')) {
+        target = value;
+        i++;
+      } else {
+        target = '';
+      }
+    } else if (arg.startsWith('--target=')) {
+      target = arg.split('=').slice(1).join('=');
+    }
+  }
+
   const options = {
-    force: args.includes('--force') || args.includes('-f'),
-    promptsOnly: args.includes('--prompts-only'),
-    partialsOnly: args.includes('--partials-only'),
-    skillsOnly: args.includes('--skills-only'),
-    instructionsOnly: args.includes('--instructions-only'),
-    dryRun: args.includes('--dry-run'),
-    claude: args.includes('--claude'),
+    force: flags.includes('--force') || flags.includes('-f'),
+    promptsOnly: flags.includes('--prompts-only'),
+    partialsOnly: flags.includes('--partials-only'),
+    skillsOnly: flags.includes('--skills-only'),
+    instructionsOnly: flags.includes('--instructions-only'),
+    dryRun: flags.includes('--dry-run'),
+    claude: flags.includes('--claude'),
+    codex: flags.includes('--codex'),
+    append: flags.includes('--append'),
+    target,
   };
   
   return { command, options };
+}
+
+function resolveInstallTarget(options = {}) {
+  const legacyTargets = [];
+
+  if (options.claude) {
+    legacyTargets.push('claude');
+  }
+  if (options.codex) {
+    legacyTargets.push('codex');
+  }
+
+  let explicitTarget = null;
+  if (options.target !== null && options.target !== undefined) {
+    explicitTarget = options.target.trim().toLowerCase();
+    if (!explicitTarget) {
+      error('Missing value for --target. Use copilot, claude, or codex.');
+      process.exit(1);
+    }
+    if (!['copilot', 'claude', 'codex'].includes(explicitTarget)) {
+      error(`Invalid --target value: ${options.target}. Use copilot, claude, or codex.`);
+      process.exit(1);
+    }
+  }
+
+  if (legacyTargets.length > 1) {
+    error('Use either --claude or --codex, not both.');
+    process.exit(1);
+  }
+
+  if (explicitTarget && legacyTargets.length > 0 && legacyTargets[0] !== explicitTarget) {
+    error(`Conflicting target flags: --target ${explicitTarget} and --${legacyTargets[0]}.`);
+    process.exit(1);
+  }
+
+  if (explicitTarget) {
+    return explicitTarget;
+  }
+
+  if (legacyTargets.length === 1) {
+    return legacyTargets[0];
+  }
+
+  return 'copilot';
 }
 
 /**
@@ -615,18 +720,25 @@ function parseArgs() {
  */
 function main() {
   const { command, options } = parseArgs();
+  const target = (command === 'install' || command === 'update')
+    ? resolveInstallTarget(options)
+    : null;
 
   switch (command) {
     case 'install':
-      if (options.claude) {
+      if (target === 'claude') {
         installClaude(options);
+      } else if (target === 'codex') {
+        installCodex(options);
       } else {
         install(options);
       }
       break;
     case 'update':
-      if (options.claude) {
+      if (target === 'claude') {
         installClaude({ ...options, force: true });
+      } else if (target === 'codex') {
+        installCodex({ ...options, force: true });
       } else {
         install({ ...options, force: true });
       }

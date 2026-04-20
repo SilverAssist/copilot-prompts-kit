@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+## [1.5.0] - 2026-04-20
+
+### Added
+
+- **Codex support** via `--codex` flag for `install` and `update` commands
+  - Installs `.github/prompts/`, `.github/instructions/`, `.github/skills/`, and a Codex-specific `AGENTS.md`
+  - Includes Codex-specific installer messages and help examples
+- **`templates/codex/AGENTS.md`** template for Codex project instructions
+- **Unified target selection** via `--target <copilot|claude|codex>` (legacy `--claude` / `--codex` still supported)
+- **`--append` mode** for non-destructive `AGENTS.md` merges when instructions are missing
+- **CLI regression tests** in `src/cli.test.js` covering targets, conflicts, dry-run counts, and append behavior
+
+### Changed
+
+- Updated package metadata and docs to list support for GitHub Copilot, Claude Code, and Codex
+- Updated template docs for prompts and skills to include Codex usage
+- Refactored installer logic to remove duplicated Copilot/Codex code paths
+- Fixed dry-run summary counts to report planned file operations accurately
+- Updated npm test script to `node --test`
+
 ## [1.4.1] - 2026-04-13
 
 ### Fixed

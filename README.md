@@ -1,6 +1,6 @@
 # @silverassist/copilot-prompts-kit
 
-Reusable AI agent prompts for development workflows with Jira integration — supports **GitHub Copilot** and **Claude Code**.
+Reusable AI agent prompts for development workflows with Jira integration — supports **GitHub Copilot**, **Claude Code**, and **Codex**.
 
 [![npm version](https://img.shields.io/npm/v/@silverassist/copilot-prompts-kit.svg)](https://www.npmjs.com/package/@silverassist/copilot-prompts-kit)
 [![License](https://img.shields.io/badge/license-PolyForm%20Noncommercial-blue.svg)](https://github.com/SilverAssist/copilot-prompts-kit/blob/main/LICENSE)
@@ -8,7 +8,7 @@ Reusable AI agent prompts for development workflows with Jira integration — su
 ## Features
 
 - ✅ **Complete Workflow Prompts**: From ticket analysis to PR merge
-- ✅ **Multi-Agent Support**: Works with GitHub Copilot and Claude Code
+- ✅ **Multi-Agent Support**: Works with GitHub Copilot, Claude Code, and Codex
 - ✅ **Modular Partials**: Reusable prompt fragments
 - ✅ **Jira Integration**: Built-in Atlassian MCP support
 - ✅ **Customizable**: Easy to extend and modify
@@ -26,6 +26,12 @@ npx @silverassist/copilot-prompts-kit@latest install
 
 ```bash
 npx @silverassist/copilot-prompts-kit@latest install --claude
+```
+
+**For Codex:**
+
+```bash
+npx @silverassist/copilot-prompts-kit@latest install --codex
 ```
 
 ## Setup
@@ -103,6 +109,37 @@ Type `/` in the chat to see all available slash commands:
 /create-pr
 ```
 
+### Codex
+
+Run the CLI with the `--codex` flag:
+
+```bash
+npx @silverassist/copilot-prompts-kit@latest install --codex
+```
+
+This creates the following structure:
+
+```
+AGENTS.md                             # Project instructions for Codex (project root)
+.github/
+├── prompts/
+│   ├── _partials/
+│   ├── analyze-ticket.prompt.md
+│   ├── create-plan.prompt.md
+│   ├── work-ticket.prompt.md
+│   └── ...
+├── instructions/
+│   ├── typescript.instructions.md
+│   ├── react-components.instructions.md
+│   ├── server-actions.instructions.md
+│   ├── tests.instructions.md
+│   └── css-styling.instructions.md
+└── skills/
+    ├── component-architecture/
+    ├── domain-driven-design/
+    └── testing-patterns/
+```
+
 ### Configure Jira (Optional)
 
 Update `.copilot-prompts.json` in your project root (created automatically):
@@ -121,7 +158,7 @@ Update `.copilot-prompts.json` in your project root (created automatically):
 
 ## Available Prompts / Commands
 
-The same set of prompts is available for both tools.
+The same set of prompts is available for all supported tools.
 
 ### Workflow
 
@@ -169,7 +206,10 @@ npx @silverassist/copilot-prompts-kit@latest install [options]
 
 | Option | Description |
 |--------|-------------|
+| `--target <name>` | Target installer: `copilot`, `claude`, or `codex` |
 | `--claude` | Install for Claude Code (`.claude/commands/` + `CLAUDE.md`) |
+| `--codex` | Install for Codex (`AGENTS.md` + shared `.github` files) |
+| `--append` | Append missing sections to existing `AGENTS.md` (instead of overwrite) |
 | `--force`, `-f` | Overwrite existing files |
 | `--prompts-only` | Only install prompts / commands |
 | `--instructions-only` | Only install instructions and instructions file |
@@ -186,13 +226,23 @@ npx @silverassist/copilot-prompts-kit@latest install
 # Claude Code — first install
 npx @silverassist/copilot-prompts-kit@latest install --claude
 
+# Codex — first install
+npx @silverassist/copilot-prompts-kit@latest install --codex
+npx @silverassist/copilot-prompts-kit@latest install --target codex
+npx @silverassist/copilot-prompts-kit@latest install --target=claude
+
 # Force overwrite all files
 npx @silverassist/copilot-prompts-kit@latest install --force
 npx @silverassist/copilot-prompts-kit@latest install --claude --force
+npx @silverassist/copilot-prompts-kit@latest install --codex --force
+
+# Merge AGENTS.md sections without overwriting
+npx @silverassist/copilot-prompts-kit@latest install --codex --instructions-only --append
 
 # Preview without installing
 npx @silverassist/copilot-prompts-kit@latest install --dry-run
 npx @silverassist/copilot-prompts-kit@latest install --claude --dry-run
+npx @silverassist/copilot-prompts-kit@latest install --codex --dry-run
 ```
 
 ### update
@@ -202,6 +252,7 @@ Update all prompts to the latest version. **Overwrites existing files** (equival
 ```bash
 npx @silverassist/copilot-prompts-kit@latest update [options]
 npx @silverassist/copilot-prompts-kit@latest update --claude
+npx @silverassist/copilot-prompts-kit@latest update --codex
 ```
 
 > ⚠️ **Warning:** This will replace any customizations you've made to the installed files.
@@ -219,7 +270,9 @@ npx @silverassist/copilot-prompts-kit@latest list
 | Scenario | Command |
 |----------|---------|
 | First time installation (Copilot) | `install` |
+| First time installation (Any target) | `install --target <copilot|claude|codex>` |
 | First time installation (Claude) | `install --claude` |
+| First time installation (Codex) | `install --codex` |
 | Add only new files (keep customizations) | `install` |
 | Get latest version (discard customizations) | `update` |
 | Update specific category only | `update --prompts-only` |
@@ -239,7 +292,7 @@ Reusable prompt fragments shared between tools:
 
 ## Instructions
 
-File-type specific guidelines applied automatically by Copilot (and referenceable in Claude):
+File-type specific guidelines applied automatically by Copilot and available as shared references for Claude/Codex:
 
 | Instruction | Applies To | Description |
 |-------------|------------|-------------|
@@ -267,11 +320,13 @@ Specialized knowledge guides for domain-specific patterns:
 
 **Claude Code** — skills are stored in `.github/skills/` and can be referenced in any prompt or command.
 
+**Codex** — skills are stored in `.github/skills/` and can be referenced from `AGENTS.md` and task context.
+
 ## Agent Instructions Files
 
-### AGENTS.md (Copilot Coding Agent)
+### AGENTS.md (Copilot/Codex Agent)
 
-Installed at the project root. Contains mandatory instructions for the GitHub Copilot Coding Agent when working on issues autonomously:
+Installed at the project root. Contains mandatory instructions for the coding agent working on issues autonomously:
 
 - 4-phase workflow: Analysis → Planning → Implementation → Documentation
 - Code conventions, React patterns, testing requirements, git guidelines
@@ -291,6 +346,7 @@ Installed at the project root with `--claude`. Contains project-wide instruction
 - Atlassian MCP configured (for Jira integration)
 - **For GitHub Copilot:** VS Code with GitHub Copilot extension
 - **For Claude Code:** Claude Code CLI or VS Code extension
+- **For Codex:** Codex CLI/session running at project root
 
 ## License
 

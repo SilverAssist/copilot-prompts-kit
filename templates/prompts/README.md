@@ -1,6 +1,6 @@
 # Prompts / Commands
 
-Reusable prompt templates for AI agent workflows — compatible with **GitHub Copilot** (VS Code) and **Claude Code**.
+Reusable prompt templates for AI agent workflows — compatible with **GitHub Copilot** (VS Code), **Claude Code**, and **Codex**.
 
 ## Overview
 
@@ -8,6 +8,7 @@ This package provides a collection of modular, reusable prompts for common devel
 
 - **GitHub Copilot**: files live in `.github/prompts/` with `.prompt.md` extension
 - **Claude Code**: files live in `.claude/commands/` with `.md` extension (auto-converted by the CLI)
+- **Codex**: prompts live in `.github/prompts/` as reusable workflow references
 
 ## Structure
 
@@ -69,6 +70,10 @@ Type `/` in the chat to open the command palette and select the desired command:
 /work-ticket
 /create-pr
 ```
+
+### Codex
+
+Run Codex from the project root after installing with `--codex`. Use prompts in `.github/prompts/` as workflow templates and task checklists.
 
 ### Variables
 
