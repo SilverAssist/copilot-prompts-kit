@@ -35,7 +35,7 @@
 | Phase | Actions |
 |-------|---------|
 | **1. Analysis** | Analyze request → Search existing code → Identify components → Review docs |
-| **2. Planning** | Create `docs/[feature]-plan.md` → Add TODOs via `manage_todo_list` → Commit plan |
+| **2. Planning** | Create `docs/[feature]-plan.md` → Track TODOs in the plan doc (or task tracker) → Commit plan |
 | **3. Implementation** | For each phase: mark in-progress → implement → test → commit → mark completed |
 | **4. Documentation** | Create final docs → Update related files → Cleanup planning docs → Final commit |
 
@@ -154,17 +154,17 @@ import { myFunction } from '@/lib/my-module';
 
 | Check | Command | Must Pass |
 |-------|---------|-----------|
-| **TypeScript** | `npx tsc --noEmit` | ✅ Zero errors |
-| **Linting** | `npm run lint` | ✅ Zero errors |
-| **Unit Tests** | `npm test` | ✅ All passing |
-| **Build** | `npm run build` | ✅ Successful |
+| **TypeScript** | `npm run type-check --if-present` (or `npx tsc --noEmit`) | ✅ Zero errors |
+| **Linting** | `npm run lint --if-present` | ✅ Zero errors |
+| **Unit Tests** | `npm run test --if-present` | ✅ All passing |
+| **Build** | `npm run build --if-present` | ✅ Successful |
 
 ### Quality Checklist
 
 ```
 Before ANY push to dev/staging/main:
 □ All TypeScript errors resolved
-□ All ESLint warnings addressed  
+□ All ESLint warnings addressed
 □ All unit tests passing locally
 □ Build completes without errors
 □ No console.log() left in code
@@ -175,6 +175,8 @@ Before ANY push to dev/staging/main:
 
 - ❌ **Without local testing** → Failed CI/CD pipelines → Wasted time & resources
 - ✅ **With local testing** → Clean pipelines → Faster deployments
+
+> If a script is not defined in `package.json`, skip that script check or use the documented fallback command.
 
 📄 **Testing details:** `.github/instructions/tests.instructions.md`
 📄 **Testing patterns:** `.github/skills/testing-patterns/SKILL.md`
