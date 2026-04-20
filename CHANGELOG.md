@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.1] - 2026-04-20
+
+### Changed
+
+- Improved prompt portability across repositories by using optional script execution (`--if-present`) and TypeScript fallback checks (`npx tsc --noEmit` when applicable)
+- Aligned Git workflow prompts to resolve base branch from `.copilot-prompts.json` with fallback behavior, avoiding hardcoded `main`/`dev` assumptions
+- Removed interactive rebase guidance from prompts in favor of agent-safe, non-interactive workflows
+- Updated prompt references to prioritize `AGENTS.md` and treat `.github/copilot-instructions.md` as optional
+- Fixed prompt template consistency issues:
+  - `create-plan` commit variable alignment
+  - `add-tests` component import pattern (`default` export)
+  - `work-ticket` branch creation based on configured base branch
+- Updated `AGENTS.md` templates to reflect script-aware quality gates and removed non-existent `manage_todo_list` requirement
+
 ## [1.5.0] - 2026-04-20
 
 ### Added
