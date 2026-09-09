@@ -83,6 +83,7 @@ export interface InstallResult {
 /** Which content categories to install, derived from InstallOptions flags. */
 export interface InstallScope {
   shouldInstallPrompts: boolean;
+  shouldInstallPartials: boolean;
   shouldInstallInstructions: boolean;
   shouldInstallSkills: boolean;
   shouldInstallHooks: boolean;

@@ -122,7 +122,11 @@ export function getInstallScope(
   const hasSpecificFlag = promptsOnly || partialsOnly || skillsOnly || instructionsOnly || hooksOnly;
 
   return {
-    shouldInstallPrompts: !hasSpecificFlag || promptsOnly || partialsOnly,
+    // `--partials-only` installs *just* `_partials/`, not the top-level `*.prompt.md`
+    // files — that distinction is drawn in the installer via `shouldInstallPartials`,
+    // not here, since partials physically live nested inside the prompts directory.
+    shouldInstallPrompts: !hasSpecificFlag || promptsOnly,
+    shouldInstallPartials: !hasSpecificFlag || promptsOnly || partialsOnly,
     shouldInstallInstructions: !hasSpecificFlag || instructionsOnly,
     shouldInstallSkills: !hasSpecificFlag || skillsOnly,
     shouldInstallHooks: !hasSpecificFlag || hooksOnly,

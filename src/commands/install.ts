@@ -56,18 +56,24 @@ export function installClaude(options: CommandOptions = {}): void {
   log('\n🤖 Claude Code Installer\n', 'bright');
   if (dryRun) info('Dry run mode - no files will be copied\n');
 
-  if (scope.shouldInstallPrompts) {
-    info('Installing slash commands...');
+  if (scope.shouldInstallPartials) {
+    // See the matching comment in installers/git-based.ts: `shouldInstallPartials` is a
+    // superset of `shouldInstallPrompts`, and the top-level `filter` is what actually
+    // distinguishes "install commands + partials" from "`--partials-only`: partials alone".
+    info(scope.shouldInstallPrompts ? 'Installing slash commands...' : 'Installing partials...');
     const result = copyDir(path.join(TEMPLATES_DIR, 'shared', 'prompts'), path.join(claudeDir, 'commands'), {
       force,
       dryRun,
-      filter: promptsFilter,
+      filter: scope.shouldInstallPrompts ? promptsFilter : () => false,
       partialsFilter,
       renameFile: (name) => name.replace(/\.prompt\.md$/, '.md'),
       transformContent: claudeTransform,
     });
     totalChanges += getChangeCount(result, dryRun);
-    if (!dryRun && result.written > 0) success(`Installed ${result.written} command files to .claude/commands/`);
+    if (!dryRun && result.written > 0) {
+      const label = scope.shouldInstallPrompts ? 'command' : 'partial';
+      success(`Installed ${result.written} ${label} files to .claude/commands/`);
+    }
   }
 
   if (scope.shouldInstallPrompts && !noAgentOverrides) {

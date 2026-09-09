@@ -62,17 +62,24 @@ export function installGitBasedTarget(options: GitBasedTargetOptions = {}, targe
   if (isGlobal) info(`Target: ${targetDir}\n`);
   if (dryRun) info('Dry run mode - no files will be copied\n');
 
-  if (scope.shouldInstallPrompts) {
-    info('Installing prompts...');
+  if (scope.shouldInstallPartials) {
+    // `shouldInstallPartials` is a superset of `shouldInstallPrompts` (see
+    // getInstallScope): it's true whenever prompts install, and also true alone for
+    // `--partials-only`. The top-level filter is what actually draws that
+    // distinction — `_partials/` always gets `partialsFilter` via the nested-directory
+    // swap in copyDir, regardless of which branch got us into this block.
+    info(scope.shouldInstallPrompts ? 'Installing prompts...' : 'Installing partials...');
     const result = copyDir(path.join(TEMPLATES_DIR, 'shared', 'prompts'), path.join(targetDir, 'prompts'), {
       force,
       dryRun,
-      filter: promptsFilter,
+      filter: scope.shouldInstallPrompts ? promptsFilter : () => false,
       partialsFilter,
       transformContent: stripModelAndToolsPins,
     });
     totalChanges += getChangeCount(result, dryRun);
-    if (!dryRun && result.written > 0) success(`Installed ${result.written} prompt files`);
+    if (!dryRun && result.written > 0) {
+      success(`Installed ${result.written} ${scope.shouldInstallPrompts ? 'prompt' : 'partial'} files`);
+    }
   }
 
   if (scope.shouldInstallInstructions) {
