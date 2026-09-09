@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.10.0] - 2026-09-09
+
+### Added
+
+- **`stack-context` skill** (react stack) — reads the exact installed `next`/`react`/`typescript`/`tailwindcss`/`@radix-ui`/shadcn/`@silverassist/*` versions from `package.json` and the lockfile, flags npm registry gaps, and — when `next` or `react` itself is behind by a minor or major version — researches what shipped in between (GitHub releases/blog posts) so a suggestion uses current APIs instead of stale or Pages-Router-era patterns pulled from training data. Read-only: it never runs `npm install`/`update`. Caches registry/research results in `.agents-toolkit-stack-context.json` (12h TTL) to avoid re-hitting the registry on every invocation. Wired as the first step of `analyze-ticket`, `analyze-github-issue`, `work-ticket`, `work-github-issue`, `create-plan`, `review-code`, `fix-issues`, `add-tests`, and `prepare-pr`.
+
+### Fixed
+
+- **`src/index.ts`'s `VERSION` constant had drifted to `2.8.1`** while `package.json` moved on to `2.9.0` — this is the exact field `install`/`restore`/`status` compare against the lockfile to warn "you're on an old version of the toolkit, run update," so that warning has been silently non-functional since the 2.9.0 release. Re-synced, and a new test now asserts `dist/index.mjs`'s `VERSION` matches `package.json` on every run.
+- **`SKILLS` and `PARTIALS` (the public `dist/index.mjs` exports) were missing `bitbucket-review-management` and `bitbucket-integration`** — both shipped as real files in 2.9.0 but never added to the arrays that describe the package's own content to an external consumer. New tests assert these arrays (plus `INSTRUCTIONS` and `PROMPTS`) match the actual template files on disk, so this class of drift fails CI instead of shipping quietly.
+- **`--partials-only` installed every prompt file, not just `_partials/`**, in both the Copilot/Codex and Claude installers — contradicting its own help text and the README. `getInstallScope` had folded it into the same branch as `--prompts-only`; split into a distinct `shouldInstallPrompts` / `shouldInstallPartials` pair so the two flags are no longer aliases of each other.
+- The `core-review` skill's README row undercounted where it's wired in ("`create-pr` and `create-github-pr` alike") — it's actually 4 callers, also `resolve-github-reviews` and `finalize-github-pr`.
+
+### Notes
+
+- All four fixes above came out of a deep, whole-repo `/core-review` pass run specifically ahead of this release (not tied to a feature diff) — worth doing again before future releases, since none of these would surface from reviewing any single PR's diff in isolation.
+
 ## [2.9.0] - 2026-09-04
 
 ### Added
