@@ -44,7 +44,16 @@ Read project conventions:
 - `.github/instructions/` — File-type specific instructions
 - `docs/` — Related documentation
 
-### 3. Analyze Technical Impact
+### 3. Detect Stack Context
+
+If this is a Next.js/React project (`package.json` present with `next` or `react`), run the
+**`stack-context` skill** (`.agents/skills/stack-context/SKILL.md`). It reports the exact
+installed `next`/`react`/Tailwind/shadcn versions, flags registry gaps, and — when a framework
+package is behind — summarizes what shipped in between, so the plan in Step 5 uses current APIs
+and calls out any relevant upgrade or new capability instead of defaulting to stale patterns.
+Skip this step entirely on a WordPress project.
+
+### 4. Analyze Technical Impact
 
 Search codebase for:
 
@@ -53,7 +62,7 @@ Search codebase for:
 - Files to modify
 - Dependencies
 
-### 4. Create Work Plan
+### 5. Create Work Plan
 
 Create planning document at `docs/{feature-name}-plan.md`.
 
@@ -76,7 +85,7 @@ Then the body:
 - Phase breakdown
 - Testing strategy
 
-### 5. Create Working Branch
+### 6. Create Working Branch
 
 From latest `main`:
 
@@ -88,14 +97,14 @@ git checkout -b feature/{issue-number}-short-description
 git checkout -b fix/{issue-number}-short-description
 ```
 
-### 6. Initial Commit
+### 7. Initial Commit
 
 ```bash
 git add docs/{feature-name}-plan.md
 git commit -m "docs: Add implementation plan for #{issue-number}"
 ```
 
-### 7. Update GitHub Issue
+### 8. Update GitHub Issue
 
 Add comment to the issue:
 

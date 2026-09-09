@@ -32,13 +32,22 @@ Analyze Jira ticket **{ticket-id}** and provide a comprehensive assessment witho
 - Request fields: `summary`, `description`, `status`, `issuetype`, `priority`, `assignee`
 - Read all comments for additional context
 
-### 3. Analyze Codebase Impact
+### 3. Detect Stack Context
+
+If this is a Next.js/React project (`package.json` present with `next` or `react`), run the
+**`stack-context` skill** (`.agents/skills/stack-context/SKILL.md`) before reasoning about the
+fix. It reports the exact installed `next`/`react`/Tailwind/shadcn versions, flags registry
+gaps, and — when a framework package is behind — summarizes what shipped in between, so the
+impact analysis below is grounded in what this project actually has, not generic or outdated
+patterns. Skip this step entirely on a WordPress project.
+
+### 4. Analyze Codebase Impact
 
 - Search the codebase for related components
 - Identify files likely to be modified
 - Check for existing implementations or patterns
 
-### 4. Generate Report
+### 5. Generate Report
 
 Provide the following structured analysis:
 
@@ -51,6 +60,11 @@ Brief overview of what needs to be done.
 - [ ] Criterion 1
 - [ ] Criterion 2
 - [ ] Criterion 3
+
+#### 🧱 Stack Context
+
+_(React projects only — omit this section on WordPress.)_ Installed versions, registry gaps,
+and any relevant new Next.js/React capability from the `stack-context` skill (Step 3).
 
 #### 🔍 Technical Impact
 

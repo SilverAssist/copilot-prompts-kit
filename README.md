@@ -89,7 +89,7 @@ AGENTS.md                             # Copilot Coding Agent instructions (proje
 └── skills/                           # Canonical store (single source of truth)
     ├── domain-driven-design/
     ├── testing-patterns/
-    └── ...                           # 14 skills total, filtered by --stack
+    └── ...                           # 15 skills total, filtered by --stack
 ```
 
 > **Skills follow the [`npx skills`](https://github.com/vercel-labs/skills) standard.** The real skill files live once in the canonical `.agents/skills/` store, and each agent's `skills/` directory contains symlinks to it — a single source of truth shared across Copilot, Claude Code, and Codex. Use `--copy` to materialize real copies instead of symlinks (e.g. on Windows without developer mode; symlinks also fall back to copies automatically when unsupported).
@@ -117,7 +117,7 @@ CLAUDE.md                             # Project instructions for Claude Code (pr
 └── skills/                           # Canonical skills store (single source of truth)
     ├── domain-driven-design/
     ├── testing-patterns/
-    └── ...                           # 14 skills total, filtered by --stack
+    └── ...                           # 15 skills total, filtered by --stack
 .claude/
 ├── agents/
 │   └── Explore.md                    # cheap-tier Explore override (replaces built-in)
@@ -180,7 +180,7 @@ AGENTS.md                             # Project instructions for Codex (project 
 └── skills/                           # Canonical store (single source of truth)
     ├── domain-driven-design/
     ├── testing-patterns/
-    └── ...                           # 14 skills total, filtered by --stack
+    └── ...                           # 15 skills total, filtered by --stack
 ```
 
 ### Global Install (Optional)
@@ -503,6 +503,7 @@ Specialized knowledge guides for domain-specific patterns:
 | `plugin-creation` | Scaffold a new Silver Assist WordPress plugin from scratch (PSR-4, LoadableInterface, CI/CD) |
 | `quality-checks` | Run PHPCS, PHPStan (level 8), and PHPUnit for Silver Assist WordPress plugins |
 | `release-management` | Create and manage releases for Silver Assist WordPress plugins (unified build + GH Actions) |
+| `stack-context` | Inventory the project's exact Next.js/React/Tailwind/shadcn versions, flag npm registry gaps, and research what shipped in newer Next.js/React versions so suggestions use current APIs — cheap tier (`model: haiku`). Wired as the first step of `analyze-ticket`, `work-ticket`, `create-plan`, `review-code`, `fix-issues`, `add-tests`, and their GitHub-issue equivalents. |
 | `testing` | Write and run PHPUnit tests for Silver Assist WordPress plugins (`WP_UnitTestCase`) |
 | `testing-patterns` | Jest + RTL patterns for Next.js 15 and Server Actions |
 | `tsdoc-standards` | Write & enforce TSDoc (not JSDoc): allowed tags, forbidden JSDoc patterns, templates, review checklist |

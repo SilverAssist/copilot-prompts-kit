@@ -31,7 +31,15 @@ Read the target file to understand:
 - Dependencies and imports
 - Edge cases to test
 
-### 2. Determine Test Location
+### 2. Detect Stack Context
+
+If this is a Next.js/React project, run the **`stack-context` skill**
+(`.agents/skills/stack-context/SKILL.md`). The installed `react`/`@testing-library/react`
+versions affect which testing APIs are current (e.g. `userEvent`'s async setup, React 19
+`act()` behavior) — use it to avoid writing tests against a deprecated API. Skip this step
+entirely on a WordPress project.
+
+### 3. Determine Test Location
 
 Based on project structure:
 
@@ -40,7 +48,7 @@ Based on project structure:
 - Utils: `src/lib/__tests__/{util-name}.test.ts`
 - Actions: `src/actions/__tests__/{action-name}.test.ts`
 
-### 3. Create Test File
+### 4. Create Test File
 
 Use this template:
 
@@ -96,7 +104,7 @@ describe('ComponentName', () => {
 });
 ```
 
-### 4. Test Categories
+### 5. Test Categories
 
 Include tests for:
 
@@ -130,7 +138,7 @@ Include tests for:
 - [ ] Null/undefined handled
 - [ ] Error states displayed
 
-### 5. Run Tests
+### 6. Run Tests
 
 ```bash
 # Preferred when test runner supports file filters (Jest/Vitest):
@@ -140,7 +148,7 @@ npm run test -- --testPathPattern="{test-file}"
 npm run test --if-present
 ```
 
-### 6. Check Coverage
+### 7. Check Coverage
 
 ```bash
 # If coverage is configured in the project:

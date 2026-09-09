@@ -24,7 +24,15 @@ git diff --name-only HEAD~1
 git diff --name-only
 ```
 
-### 2. Review Each File
+### 2. Detect Stack Context
+
+If this is a Next.js/React project (`package.json` present with `next` or `react`), run the
+**`stack-context` skill** (`.agents/skills/stack-context/SKILL.md`). Use its output to flag
+patterns in the changed files that are stale for the version actually installed (e.g. Pages
+Router idioms in an App Router project) and to feed the 💡 Suggestions section below with any
+new capability the changed files could adopt. Skip this step entirely on a WordPress project.
+
+### 3. Review Each File
 
 For each changed file:
 
@@ -55,19 +63,19 @@ For each changed file:
 - [ ] Complex logic has comments
 - [ ] Props interfaces documented
 
-### 3. Security Check
+### 4. Security Check
 
 - [ ] No sensitive data (API keys, secrets)
 - [ ] No exposed credentials
 - [ ] No unsafe user input handling
 
-### 4. Performance
+### 5. Performance
 
 - [ ] No unnecessary re-renders (React)
 - [ ] Efficient data structures
 - [ ] No memory leaks potential
 
-### 5. Caching & Data Fetching (Next.js)
+### 6. Caching & Data Fetching (Next.js)
 
 > See `.github/instructions/caching.instructions.md`. Caching is decided by **read-vs-mutation**, not the HTTP method.
 
@@ -87,7 +95,7 @@ For each changed file:
 - [ ] No `loading.tsx` sits as an ancestor of a route that calls `notFound()` — verify with a status
       check (`curl -sv`), not just that the UI looks right
 
-### 6. Component Architecture (React/Next.js)
+### 7. Component Architecture (React/Next.js)
 
 > See `.github/instructions/react-components.instructions.md`.
 

@@ -34,7 +34,15 @@ Sort issues by type:
 - **Type errors**: TypeScript compilation errors
 - **Test failures**: Failed unit tests
 
-### 3. Fix Lint Errors
+### 3. Detect Stack Context (type errors only)
+
+If any type errors surfaced in Step 1 and this is a Next.js/React project, run the
+**`stack-context` skill** (`.agents/skills/stack-context/SKILL.md`) before fixing them — several
+recurring type errors are version-specific (Next.js 15's async `params`/`searchParams`, React
+19's `ref`-as-prop), and the fix differs by installed version. Skip when there are no type
+errors, or on a WordPress project.
+
+### 4. Fix Lint Errors
 
 #### Auto-fixable
 
@@ -51,7 +59,7 @@ For each remaining lint error:
 3. Apply the appropriate fix
 4. Verify fix resolved the issue
 
-### 4. Fix Type Errors
+### 5. Fix Type Errors
 
 For each type error:
 
@@ -63,7 +71,7 @@ For each type error:
    - Update interface
    - Handle null/undefined
 
-### 5. Fix Test Failures
+### 6. Fix Test Failures
 
 For each failing test:
 
@@ -74,7 +82,7 @@ For each failing test:
    - **Code is wrong**: Fix implementation
    - **Missing mock**: Add mock data
 
-### 6. Verify All Fixed
+### 7. Verify All Fixed
 
 ```bash
 npm run lint --if-present

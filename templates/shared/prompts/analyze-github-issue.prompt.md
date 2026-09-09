@@ -28,20 +28,28 @@ Analyze GitHub issue **#{issue-number}** in repository **{owner}/{repo}** and pr
 - Read: title, body, labels, assignees, milestone, and linked pull requests
 - Read all comments for additional context and discussion
 
-### 2. Analyze Codebase Impact
+### 2. Detect Stack Context
+
+If this is a Next.js/React project (`package.json` present with `next` or `react`), run the
+**`stack-context` skill** (`.agents/skills/stack-context/SKILL.md`) before assessing impact. It
+reports the exact installed `next`/`react`/Tailwind/shadcn versions, flags registry gaps, and
+— when a framework package is behind — summarizes what shipped in between, so the analysis
+below reflects what this project actually has. Skip this step entirely on a WordPress project.
+
+### 3. Analyze Codebase Impact
 
 - Search the codebase for related components, files, and patterns
 - Identify files likely to be created or modified
 - Check for existing implementations or patterns that should be followed
 - Review project conventions (README, copilot-instructions.md, existing architecture)
 
-### 3. Check Related Issues
+### 4. Check Related Issues
 
 - Search for related or dependent issues using labels or keywords
 - Identify blockers or prerequisites
 - Note any duplicate or overlapping issues
 
-### 4. Generate Report
+### 5. Generate Report
 
 Provide the following structured analysis:
 
@@ -56,6 +64,11 @@ Brief overview of what needs to be done.
 - [ ] Criterion 3
 
 (Extract from issue body if present, or derive from the description)
+
+#### Stack Context
+
+_(React projects only — omit this section on WordPress.)_ Installed versions, registry gaps,
+and any relevant new Next.js/React capability from the `stack-context` skill (Step 2).
 
 #### Technical Impact
 

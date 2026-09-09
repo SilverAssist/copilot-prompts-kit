@@ -69,6 +69,7 @@ export const SKILLS: readonly string[] = [
   'plugin-creation',
   'quality-checks',
   'release-management',
+  'stack-context',
   'testing',
   'testing-patterns',
   'tsdoc-standards',
