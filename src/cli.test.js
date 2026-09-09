@@ -908,6 +908,38 @@ test('claude install preserves the > **Model:** blockquote body text', (t) => {
   assert.match(content, /> \*\*Model:\*\* Cheap tier/, 'body-level model note must survive the transform');
 });
 
+test('--partials-only installs _partials/ but not the top-level prompt files (copilot/codex target)', (t) => {
+  const tempDir = createTempProject(t);
+  const { status, stderr } = runCli(['install', '--partials-only'], tempDir);
+  assert.equal(status, 0, stderr);
+
+  const promptsDir = path.join(tempDir, '.github', 'prompts');
+  assert.ok(
+    fs.existsSync(path.join(promptsDir, '_partials', 'validations.md')),
+    '_partials/ content must still install',
+  );
+  assert.ok(
+    !fs.existsSync(path.join(promptsDir, 'quality-check.prompt.md')),
+    '--partials-only must not install top-level *.prompt.md files',
+  );
+});
+
+test('--partials-only installs _partials/ but not the top-level commands (claude target)', (t) => {
+  const tempDir = createTempProject(t);
+  const { status, stderr } = runCli(['install', '--target', 'claude', '--partials-only'], tempDir);
+  assert.equal(status, 0, stderr);
+
+  const commandsDir = path.join(tempDir, '.claude', 'commands');
+  assert.ok(
+    fs.existsSync(path.join(commandsDir, '_partials', 'validations.md')),
+    '_partials/ content must still install',
+  );
+  assert.ok(
+    !fs.existsSync(path.join(commandsDir, 'quality-check.md')),
+    '--partials-only must not install top-level commands',
+  );
+});
+
 // ─── #39: agent overrides + --budget ─────────────────────────────────────────
 
 test('help shows --no-agent-overrides and no model-selection flags', () => {
@@ -1210,4 +1242,71 @@ test('npm pack --dry-run includes dist/cli.mjs and dist/index.mjs', () => {
     !files.some((f) => f.startsWith('src/') && !f.startsWith('src/cli.test')),
     'tarball must not include src/ source files',
   );
+});
+
+// ---------------------------------------------------------------------------
+// Library-surface sync — dist/index.mjs manifests must match package.json and
+// the actual shipped template files, so a new/renamed asset can't silently
+// ship without also updating the exported SKILLS/PARTIALS/INSTRUCTIONS arrays
+// (this bit the 2.9.0 release: bitbucket-review-management and
+// bitbucket-integration shipped as real files but never made it into SKILLS/
+// PARTIALS, and VERSION was left pointing at the prior release).
+// ---------------------------------------------------------------------------
+
+const REPO_ROOT = path.join(__dirname, '..');
+const TEMPLATES_ROOT = path.join(REPO_ROOT, 'templates', 'shared');
+
+function listBasenames(dir, stripSuffix) {
+  return fs
+    .readdirSync(dir)
+    .filter((name) => name.endsWith(stripSuffix))
+    .map((name) => name.slice(0, -stripSuffix.length))
+    .sort();
+}
+
+test('dist/index.mjs VERSION matches package.json', async () => {
+  const pkg = JSON.parse(fs.readFileSync(path.join(REPO_ROOT, 'package.json'), 'utf-8'));
+  const lib = await import(path.join(REPO_ROOT, 'dist', 'index.mjs'));
+  assert.equal(lib.VERSION, pkg.version, 'src/index.ts VERSION must be bumped alongside package.json on every release');
+});
+
+test('dist/index.mjs SKILLS matches templates/shared/skills/ on disk', async () => {
+  const lib = await import(path.join(REPO_ROOT, 'dist', 'index.mjs'));
+  const onDisk = fs
+    .readdirSync(path.join(TEMPLATES_ROOT, 'skills'), { withFileTypes: true })
+    .filter((e) => e.isDirectory())
+    .map((e) => e.name)
+    .sort();
+  assert.deepEqual(
+    [...lib.SKILLS].sort(),
+    onDisk,
+    'SKILLS must list every skill folder shipped in templates/shared/skills/',
+  );
+});
+
+test('dist/index.mjs PARTIALS matches templates/shared/prompts/_partials/ on disk', async () => {
+  const lib = await import(path.join(REPO_ROOT, 'dist', 'index.mjs'));
+  const onDisk = listBasenames(path.join(TEMPLATES_ROOT, 'prompts', '_partials'), '.md').filter((n) => n !== 'README');
+  assert.deepEqual(
+    [...lib.PARTIALS].sort(),
+    onDisk,
+    'PARTIALS must list every partial shipped in templates/shared/prompts/_partials/',
+  );
+});
+
+test('dist/index.mjs INSTRUCTIONS matches templates/shared/instructions/ on disk', async () => {
+  const lib = await import(path.join(REPO_ROOT, 'dist', 'index.mjs'));
+  const onDisk = listBasenames(path.join(TEMPLATES_ROOT, 'instructions'), '.instructions.md');
+  assert.deepEqual(
+    [...lib.INSTRUCTIONS].sort(),
+    onDisk,
+    'INSTRUCTIONS must list every instruction file shipped in templates/shared/instructions/',
+  );
+});
+
+test('dist/index.mjs PROMPTS (workflow + utility) matches templates/shared/prompts/ on disk', async () => {
+  const lib = await import(path.join(REPO_ROOT, 'dist', 'index.mjs'));
+  const onDisk = listBasenames(path.join(TEMPLATES_ROOT, 'prompts'), '.prompt.md');
+  const combined = [...lib.PROMPTS.workflow, ...lib.PROMPTS.utility].sort();
+  assert.deepEqual(combined, onDisk, 'PROMPTS.workflow + PROMPTS.utility must together list every *.prompt.md shipped');
 });

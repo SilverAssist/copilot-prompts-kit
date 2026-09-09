@@ -1,5 +1,5 @@
 /** Current package version — must match `package.json`. */
-export const VERSION = '2.8.1';
+export const VERSION = '2.9.0';
 
 /** Prompt names grouped by `workflow` and `utility` categories. */
 export const PROMPTS: { workflow: readonly string[]; utility: readonly string[] } = {
@@ -30,6 +30,7 @@ export const PROMPTS: { workflow: readonly string[]; utility: readonly string[] 
 
 /** Partial names installed into the `_partials/` subdirectory. */
 export const PARTIALS: readonly string[] = [
+  'bitbucket-integration',
   'documentation',
   'git-operations',
   'github-integration',
@@ -60,6 +61,7 @@ export const INSTRUCTIONS: readonly string[] = [
 /** Skill names installed to the canonical `.agents/skills/` store. */
 export const SKILLS: readonly string[] = [
   'ai-seo-optimization',
+  'bitbucket-review-management',
   'component-architecture',
   'core-review',
   'create-component',
