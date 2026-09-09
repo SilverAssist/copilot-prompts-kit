@@ -61,7 +61,7 @@ export const FILE_CATEGORIES: Record<FileCategoryKey, CategoryEntries> = {
     universal: ['git-operations', 'pr-template', 'validations', 'documentation'],
   },
   skills: {
-    react: ['component-architecture', 'nextjs-caching', 'testing-patterns', 'tsdoc-standards'],
+    react: ['component-architecture', 'nextjs-caching', 'stack-context', 'testing-patterns', 'tsdoc-standards'],
     wordpress: ['create-component', 'plugin-creation', 'quality-checks', 'testing'],
     // `core-review` is deliberately NOT github-scoped: it is a local, agent-side
     // consistency pass (doc↔code drift, stale indexes, broken links) that runs

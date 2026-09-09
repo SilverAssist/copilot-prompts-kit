@@ -69,7 +69,15 @@ npm run build --if-present
 - Check coverage report
 - Fix any failing tests
 
-### 4. Code Review Checks
+### 4. Detect Stack Context
+
+If this is a Next.js/React project, run the **`stack-context` skill**
+(`.agents/skills/stack-context/SKILL.md`). This is advisory only at this stage — the code is
+already written — so its output feeds the ⚠️ Warnings section (e.g. "this diff uses a pattern
+the newly-available Next.js prefetch API would simplify"), never the ❌ Blockers. Skip this step
+entirely on a WordPress project.
+
+### 5. Code Review Checks
 
 Verify:
 
@@ -79,7 +87,7 @@ Verify:
 - [ ] JSDoc comments on new/modified functions
 - [ ] Props interfaces documented
 
-### 5. Review Changes
+### 6. Review Changes
 
 ```bash
 git diff --stat
@@ -92,7 +100,7 @@ Check:
 - No unintended changes
 - README/docs updated if needed
 
-### 6. Commit Hygiene
+### 7. Commit Hygiene
 
 Verify commit messages:
 
@@ -107,7 +115,7 @@ git fetch origin
 git rebase "origin/${BASE_BRANCH}"
 ```
 
-### 7. Documentation Check
+### 8. Documentation Check
 
 - [ ] JSDoc comments on new functions
 - [ ] README updated if needed

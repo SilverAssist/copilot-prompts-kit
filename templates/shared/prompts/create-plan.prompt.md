@@ -29,13 +29,23 @@ Create a detailed implementation plan for: **{feature-description}**
 - Identify affected areas of the codebase
 - Search for related implementations
 
-### 2. Research Current State
+### 2. Detect Stack Context
+
+If this is a Next.js/React project (`package.json` present with `next` or `react`), run the
+**`stack-context` skill** (`.agents/skills/stack-context/SKILL.md`). It reports the exact
+installed `next`/`react`/Tailwind/shadcn versions, flags registry gaps, and — when a framework
+package is behind — summarizes what shipped in between, so the "Technical Approach" section
+below proposes current APIs and calls out any relevant upgrade or new capability instead of
+defaulting to stale or Pages-Router-era patterns. Skip this step entirely on a WordPress
+project.
+
+### 3. Research Current State
 
 - Read relevant source files
 - Understand current architecture
 - Document existing patterns
 
-### 3. Create Planning Document
+### 4. Create Planning Document
 
 Save to: `docs/{feature-name}-plan.md`
 
@@ -66,6 +76,10 @@ What problem are we solving? Why is this change needed?
 - How does the current system work?
 - What components are involved?
 - What are the limitations?
+
+## Stack Context (Next.js/React only)
+Installed versions, any registry gaps, and any relevant new Next.js/React capability from the
+`stack-context` skill (Step 2). Omit this section entirely on a WordPress project.
 
 ## Proposed Changes
 
@@ -136,7 +150,7 @@ How to revert changes if issues arise.
 - Team coordination needed
 ```
 
-### 4. Commit Plan
+### 5. Commit Plan
 
 ```bash
 git add docs/{feature-name}-plan.md

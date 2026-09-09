@@ -37,6 +37,8 @@ skills directory contains symlinks to it (single source of truth):
 │   └── SKILL.md
 ├── release-management/
 │   └── SKILL.md
+├── stack-context/
+│   └── SKILL.md
 ├── testing/
 │   └── SKILL.md
 ├── testing-patterns/
@@ -75,6 +77,7 @@ description: When to use this skill. Agents use this to decide relevance.
 | `plugin-creation` | Scaffold a new Silver Assist WordPress plugin from scratch (PSR-4, LoadableInterface, CI/CD) |
 | `quality-checks` | Run PHPCS, PHPStan (level 8), and PHPUnit for Silver Assist WordPress plugins |
 | `release-management` | Create and manage releases for Silver Assist WordPress plugins (unified build + GH Actions) |
+| `stack-context` | Inventory the project's exact Next.js/React/Tailwind/shadcn versions, flag npm registry gaps, and research what shipped in newer Next.js/React versions so suggestions use current APIs |
 | `testing` | Write and run PHPUnit tests for Silver Assist WordPress plugins (WP_UnitTestCase) |
 | `testing-patterns` | Jest + RTL patterns for Next.js 15 and Server Actions |
 | `tsdoc-standards` | Write & enforce TSDoc (not JSDoc): allowed tags, forbidden JSDoc patterns, templates |
